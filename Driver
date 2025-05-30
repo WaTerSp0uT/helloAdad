@@ -1,0 +1,449 @@
+package com.lib;
+
+import com.perfecto.reportium.client.ReportiumClient;
+import io.appium.java_client.HasSettings;
+import io.appium.java_client.Setting;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import net.lightbody.bmp.client.ClientUtil;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.Proxy;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.safari.SafariOptions;
+
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+public class Driver {
+
+    /*
+    Creating a private constructor, so we are closing
+    access to the object of this class from outside the class
+     */
+    private Driver(){}
+    private static Library library = null;
+    /*
+    We make WebDriver private, because we want to close access from outside the class.
+    We make it static because we will use it in a static method.
+     */
+    private static WebDriver driver; // value is null by default
+
+    private static InheritableThreadLocal<WebDriver> driverPool = new InheritableThreadLocal<>();
+    //private static ThreadLocal<ReportiumClient> rc = new ThreadLocal<>();
+    private static ThreadLocal<ReportiumClient> rc = new InheritableThreadLocal<>();
+
+    public static ReportiumClient reportiumClient;
+    /*
+    Create a re-usable utility method which will return same driver instance when we call it
+     */
+    public static WebDriver getDriver(){
+
+        if (driverPool.get() == null){
+
+            /*
+            We read our browserType from configuration.properties.
+            This way, we can control which browser is opened from outside our code, from config.properties.
+             */
+            String browserType = Library.getLibrary().readProperty("browserType");
+            System.setProperty("UserSelectedBrowserMode", browserType);
+            System.setProperty("BrowserName", "NO");
+            System.setProperty("LoggedInUser", "false");
+            System.setProperty("environment", Library.getLibrary().readProperty("environment").toUpperCase());
+            System.setProperty("creditCardFlag", "false");
+            LoggingPreferences logPrefs;
+            Proxy seleniumProxy;
+            UiAutomator2Options uiAutomator2Options;
+            Map<String, Object> perfectoOptions;
+            DesiredCapabilities capabilities = new DesiredCapabilities();
+
+            /*
+                Depending on the browserType that will be return from configuration.properties file
+                switch statement will determine the case, and open the matching browser
+            */
+            switch (browserType){
+                case "edge":
+                    //System.setProperty("webdriver.edge.driver", "Drivers/msedgedriver1.exe");
+                    WebDriverManager.edgedriver().setup();
+
+                    Library.getLibrary().setUpProxy();
+
+                    EdgeOptions edgeOptions = new EdgeOptions();
+
+                    logPrefs = new LoggingPreferences();
+                    logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+                    edgeOptions.setCapability("goog:loggingPrefs", logPrefs);
+
+                    seleniumProxy = ClientUtil.createSeleniumProxy(Library.getLibrary().proxy);
+                    seleniumProxy.setSslProxy("localhost:" + Library.getLibrary().proxy.getPort());
+                    edgeOptions.setProxy(seleniumProxy);
+                    edgeOptions.addArguments("--ignore-certificate-errors");
+                    edgeOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+
+                    //driver = new EdgeDriver(edgeOptions);
+                    driverPool.set(new EdgeDriver(edgeOptions));
+                    //driver.manage().deleteAllCookies();
+                    driverPool.get().manage().deleteAllCookies();
+                    //driver.manage().window().maximize();
+                    driverPool.get().manage().window().maximize();
+                    //driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+                    driverPool.get().manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+                    System.out.println("Edge Browser launched");
+                    break;
+                case "chrome":
+                    //System.setProperty("webdriver.chrome.driver", "Drivers/chromedriver.exe");
+                    WebDriverManager.chromedriver().setup();
+
+                    //Proxy SetUp
+                    Library.getLibrary().setUpProxy();
+                    ChromeOptions options = new ChromeOptions();
+                    /*
+                    logPrefs = new LoggingPreferences();
+                    logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+                    options.setCapability("goog:loggingPrefs", logPrefs);
+
+                    seleniumProxy = ClientUtil.createSeleniumProxy(Library.getLibrary().proxy);
+                    seleniumProxy.setSslProxy("localhost:" + Library.getLibrary().proxy.getPort());
+
+                    options.setProxy(seleniumProxy);*/
+                    options.addArguments("--ignore-certificate-errors");
+                    //options.addArguments("start-maximized");
+                    options.addArguments("--incognito");
+                    options.addArguments("--no-sandbox");
+                    options.addArguments("--disable-site-isolation-trails");
+                    //options.addArguments("--headless", "--window-size=1368,768");
+
+                    //driver = new ChromeDriver(options);
+                    driverPool.set(new ChromeDriver(options));
+
+                    //driver = new ChromeDriver();
+                    //driver.manage().deleteAllCookies();
+                    //driver.manage().window().maximize();
+                    //driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+                    
+                    driverPool.get().manage().window().maximize();
+                    driverPool.get().manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+                    
+                    System.out.println("Chrome Browser launched");
+
+                    break;
+                case "perfecto":
+                    perfectoOptions = new HashMap<>();
+
+                    switch (Library.getLibrary().readProperty("platformName").toUpperCase()) {
+                        case "WINDOWS":
+
+                            perfectoOptions.put("platformVersion", Library.getLibrary().readProperty("platformVersion"));
+                            perfectoOptions.put("resolution", Library.getLibrary().readProperty("resolution"));
+                            perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                            //perfectoOptions.put("location", Library.getLibrary().readProperty("location"));
+
+                            switch (Library.getLibrary().readProperty("browserName").toUpperCase()) {
+                                case "CHROME":
+                                    ChromeOptions browserOptions = new ChromeOptions();
+                                    
+                                    
+                                    browserOptions.setPlatformName("Windows");
+                                    browserOptions.setBrowserVersion(Library.getLibrary().readProperty("browserVersion"));
+                                    browserOptions.addArguments("--incognito");
+                                   // browserOptions.setCapability("captureHAR", true);
+                                    //browserOptions.setCapability("location", Library.getLibrary().readProperty("location"));
+                                    browserOptions.setCapability(ChromeOptions.CAPABILITY, browserOptions);
+                                    browserOptions.setCapability("perfecto:options", perfectoOptions);
+                                    callRemoteDriverCap(browserOptions);
+                                    try {
+                                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                                        setReportiumClient(reportiumClient);
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
+
+                                case "EDGE":
+                                    EdgeOptions browserOptionsEdge = new EdgeOptions();
+                                    perfectoOptions.put("browserName", "Edge");
+                                    browserOptionsEdge.setPlatformName("Windows");
+                                    //browserOptionsEdge.UseChromium = true;
+                                    browserOptionsEdge.setBrowserVersion(Library.getLibrary().readProperty("browserVersion"));
+                                    browserOptionsEdge.addArguments("--incognito");
+                                    browserOptionsEdge.setCapability(ChromeOptions.CAPABILITY, browserOptionsEdge);
+                                    browserOptionsEdge.setCapability("perfecto:options", perfectoOptions);
+                                    callRemoteDriverCap(browserOptionsEdge);
+                                    try {
+                                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                                        setReportiumClient(reportiumClient);
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    break;
+
+                                case "FIREFOX":
+                                    FirefoxOptions browserOptionsFireFox = new FirefoxOptions();
+
+                                    FirefoxProfile firefoxProfile = new FirefoxProfile();
+                                    firefoxProfile.setPreference("browser.private.browsing.autostart",true);
+
+                                    browserOptionsFireFox.setPlatformName("Windows");
+                                    browserOptionsFireFox.setBrowserVersion(Library.getLibrary().readProperty("browserVersion"));
+                                    browserOptionsFireFox.setCapability("perfecto:options", perfectoOptions);
+                                    callRemoteDriverCap(browserOptionsFireFox);
+                                    try {
+                                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                                        setReportiumClient(reportiumClient);
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
+
+                                default:
+                                    //driver.quit();
+                                    closeDriver();
+                                    System.out.println("Invalid choice of browser");
+                            }
+
+                            break;
+
+                        case "MAC":
+                            SafariOptions browserOptionsSafari = new SafariOptions();
+                            browserOptionsSafari.setPlatformName("MAC");
+                            browserOptionsSafari.setBrowserVersion("15");
+
+                            perfectoOptions.put("platformVersion", "macOS Big Sur");
+                            perfectoOptions.put("resolution", Library.getLibrary().readProperty("resolution"));
+                            perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                            perfectoOptions.put("waitForAvailableLicense", true);
+                            browserOptionsSafari.setCapability("perfecto:options", perfectoOptions);
+                            callRemoteDriverCap(browserOptionsSafari);
+                            try {
+                            reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                            setReportiumClient(reportiumClient);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            break;
+
+                        default:
+                            System.out.println("Invalid choice of Desktop mode");
+                    }
+                    break;
+                case "androidBrowser":
+                    uiAutomator2Options = new UiAutomator2Options();
+
+                    perfectoOptions = new HashMap<>();
+
+                    uiAutomator2Options.setCapability("platformName", "Android");
+                    perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                    perfectoOptions.put("platformVersion", "12");
+                    perfectoOptions.put("model", "Pixel 6");
+                    
+                    //perfectoOptions.put("platformVersion", "13");
+                    //perfectoOptions.put("model", "Galaxy S21 Ultra");
+                    
+                    System.setProperty("virtualDevice", "true");
+                    if(Library.getLibrary().readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+                        perfectoOptions.put("deviceName", "25221FDF600564");
+                    	//perfectoOptions.put("deviceName", "RFCT30CJAAR");
+                        perfectoOptions.put("useVirtualDevice", false);
+                        perfectoOptions.put("automationName", "Appium");
+                        perfectoOptions.put("appiumVersion", "2.0.0");
+                        perfectoOptions.put("automationVersion", "latest");
+                        System.setProperty("virtualDevice", "false");
+                    }else {
+                        perfectoOptions.put("useVirtualDevice", true);
+                    }
+
+                    perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+                    uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+                    try {
+                        //driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+                        driverPool.set(new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options));
+
+                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                        setReportiumClient(reportiumClient);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "androidTabletBrowser":
+                    uiAutomator2Options = new UiAutomator2Options();
+                    perfectoOptions = new HashMap<>();
+
+                    uiAutomator2Options.setCapability("platformName", "Android");
+                    perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                    perfectoOptions.put("platformVersion", "12");
+                    perfectoOptions.put("model", "Galaxy Tab S8 Plus");
+                    perfectoOptions.put("deviceName", "R52T509SL7X");
+                    System.setProperty("virtualDevice", "false");
+                    if(Library.getLibrary().readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+                        perfectoOptions.put("useVirtualDevice", false);
+                        perfectoOptions.put("automationName", "Appium");
+
+                        perfectoOptions.put("appiumVersion", "2.0.0");
+                        perfectoOptions.put("automationVersion", "latest");
+
+                        System.setProperty("virtualDevice", "false");
+                    }else{
+                        perfectoOptions.put("useVirtualDevice", true);
+                    }
+
+                    perfectoOptions.put("unicodeKeyboard", true);
+                    perfectoOptions.put("resetKeyboard", true);
+                    perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+                    uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+                    try {
+                        //driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+                        driverPool.set(new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options));
+
+                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                        setReportiumClient(reportiumClient);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "iPhoneBrowser":
+                    uiAutomator2Options = new UiAutomator2Options();
+
+                    perfectoOptions = new HashMap<>();
+
+                    uiAutomator2Options.setCapability("platformName", "iOS");
+                    perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                    perfectoOptions.put("manufacturer", "Apple");
+                    perfectoOptions.put("model", "iPhone-12");
+                    //System.setProperty("virtualDevice", "true");
+                    if(Library.getLibrary().readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+                        perfectoOptions.put("deviceName", "00008101-001A3D300C69001E");
+                        perfectoOptions.put("useVirtualDevice", false);
+                        perfectoOptions.put("automationName", "Appium");
+                        perfectoOptions.put("appiumVersion", "2.0.0");
+                        perfectoOptions.put("automationVersion", "latest");
+                        perfectoOptions.put("useAppiumForWeb", true);
+                        perfectoOptions.put("browserName", "Safari");
+                        System.setProperty("virtualDevice", "false");
+
+                    }else{
+                        perfectoOptions.put("useVirtualDevice", true);
+                    }
+
+                    //perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+                    uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+
+                    try {
+                        //driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+                        driverPool.set(new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options));
+
+                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                        setReportiumClient(reportiumClient);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
+                case "IpadAirBrowser":
+                    uiAutomator2Options = new UiAutomator2Options();
+
+                    perfectoOptions = new HashMap<>();
+
+                    uiAutomator2Options.setCapability("platformName", "iOS");
+                    perfectoOptions.put("securityToken", Library.getLibrary().readProperty("securityToken"));
+                    perfectoOptions.put("manufacturer", "Apple");
+                    perfectoOptions.put("platformBuild", "19E241");
+                    perfectoOptions.put("model", "iPad Air \\(5th generation\\)");
+                    System.setProperty("virtualDevice", "true");
+                    if(Library.getLibrary().readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+                        perfectoOptions.put("deviceName", "00008103-001A68CE11DB001E");
+                        perfectoOptions.put("useVirtualDevice", false);
+                        perfectoOptions.put("automationName", "Appium");
+                        perfectoOptions.put("appiumVersion", "2.0.0");
+                        perfectoOptions.put("automationVersion", "latest");
+                        perfectoOptions.put("useAppiumForWeb", true);
+                        perfectoOptions.put("browserName", "Safari");
+                        System.setProperty("virtualDevice", "false");
+                    }
+                    else
+                        perfectoOptions.put("useVirtualDevice", true);
+
+                    //perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+                    uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+                    try {
+                        //driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+                        driverPool.set(new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options));
+
+                        reportiumClient = PerfectoLabUtils.setReportiumClient(driverPool.get(), reportiumClient); //Creates reportiumClient
+
+                        setReportiumClient(reportiumClient);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+            }
+        }
+
+        return driverPool.get();
+
+    }
+
+    /*
+    This method will make sure our driver value is always null after using quit() method
+     */
+    public static void closeDriver(){
+        if (driverPool.get() != null){
+            driverPool.get().quit(); // this line will terminate the existing session. value will not even be null
+            driverPool.remove();
+            //driverPool=null;
+        }
+    }
+
+    public static void callRemoteDriverCap(Capabilities capabilities) {
+        try {
+
+            //driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), capabilities);
+            driverPool.set(new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), capabilities));
+            driverPool.get().manage().window().maximize();
+            //((HasSettings) driverPool.get()).setSetting(Setting.WAIT_FOR_IDLE_TIMEOUT, 30);
+            driverPool.get().manage().timeouts().implicitlyWait(30,TimeUnit.SECONDS);
+            //driver.manage().window().maximize();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void setReportiumClient(ReportiumClient rcReff){
+
+        rc.set(rcReff);
+    }
+
+    public static ReportiumClient getReportium(){
+
+        return rc.get();
+    }
+
+}
