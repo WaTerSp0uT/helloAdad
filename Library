@@ -1,0 +1,1025 @@
+package com.lib;
+
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+import com.pages.NativePage;
+import com.steps.BaseStep;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import net.lightbody.bmp.BrowserMobProxy;
+import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.client.ClientUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.io.FileHandler;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.DriverCommand;
+import org.openqa.selenium.remote.RemoteExecuteMethod;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.safari.SafariOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+import junit.framework.Assert;
+
+public class Library extends BaseStep {
+
+	private static Library library = null;
+	public static String browserName = null;
+	BrowserMobProxy proxy;
+
+	private Library() {
+
+	}
+
+	public static Library getLibrary() {
+		if (library == null)
+			library = new Library();
+		return library;
+	}
+	
+	public void pause(int sec) {
+		try {
+			Thread.sleep(sec * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * Before running Mobile Application Test
+	 * Start the Appium server on port: 4723 and host: 127.0.0.1
+	 * Launch the Android Emulator from Android Studio Device Manager
+	 * And use appium inspector to inspect elements on mobile
+	 */
+	public WebDriver launchBrowser(String browserType) {
+		browserName = browserType;
+		System.setProperty("BrowserName", "NO");
+
+		System.setProperty("environment", readProperty("environment").toUpperCase());
+		System.setProperty("creditCardFlag", "false");
+
+		if (driver != null)
+		{
+			//return driver;
+			driver.quit();
+		}
+		System.out.println("os name: " + System.getProperty("os.name"));
+		if (browserName.equals("edge")) {
+			//System.setProperty("webdriver.edge.driver", "Drivers/msedgedriver1.exe");
+			WebDriverManager.edgedriver().setup();
+
+			setUpProxy();
+
+			EdgeOptions edgeOptions = new EdgeOptions();
+
+			LoggingPreferences logPrefs = new LoggingPreferences();
+			logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+			edgeOptions.setCapability("goog:loggingPrefs", logPrefs);
+
+			Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+			seleniumProxy.setSslProxy("localhost:" + proxy.getPort());
+			edgeOptions.setProxy(seleniumProxy);
+			edgeOptions.addArguments("--ignore-certificate-errors");
+			edgeOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+
+			driver = new EdgeDriver(edgeOptions);
+			driver.manage().deleteAllCookies();
+			driver.manage().window().maximize();
+			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+			System.out.println("Edge Browser launched");
+
+			return driver;
+		} 
+		else if ("perfecto".equalsIgnoreCase(browserName)) {
+
+			Map<String, Object> perfectoOptions = new HashMap<>();
+
+			switch (readProperty("platformName").toUpperCase()) {
+			case "WINDOWS":
+
+				perfectoOptions.put("platformVersion", readProperty("platformVersion"));
+				perfectoOptions.put("resolution", readProperty("resolution"));
+				perfectoOptions.put("securityToken", readProperty("securityToken"));
+
+				switch (readProperty("browserName").toUpperCase()) {
+				case "CHROME":
+					ChromeOptions browserOptions = new ChromeOptions();
+					browserOptions.setPlatformName("Windows");
+					browserOptions.setBrowserVersion(readProperty("browserVersion"));
+					browserOptions.addArguments("--incognito");
+					browserOptions.addArguments("--disable-notifications");
+					browserOptions.setCapability(ChromeOptions.CAPABILITY, browserOptions);
+					browserOptions.setCapability("perfecto:options", perfectoOptions);
+					callRemoteDriver(browserOptions);
+					break;
+
+				case "EDGE":
+					EdgeOptions browserOptionsEdge = new EdgeOptions();
+					perfectoOptions.put("browserName", "Edge");
+					browserOptionsEdge.setPlatformName("Windows");
+					//browserOptionsEdge.UseChromium = true;
+					browserOptionsEdge.setBrowserVersion(readProperty("browserVersion"));
+					//browserOptionsEdge.addArguments("--incognito");
+					browserOptionsEdge.addArguments("-inprivate");
+					browserOptionsEdge.addArguments("--disable-notifications");
+					browserOptionsEdge.setCapability(ChromeOptions.CAPABILITY, browserOptionsEdge);
+					browserOptionsEdge.setCapability("perfecto:options", perfectoOptions);
+					callRemoteDriver(browserOptionsEdge);
+
+					break;
+
+				case "FIREFOX":
+					FirefoxOptions browserOptionsFireFox = new FirefoxOptions();
+
+					FirefoxProfile firefoxProfile = new FirefoxProfile();
+					firefoxProfile.setPreference("browser.private.browsing.autostart",true);
+
+					browserOptionsFireFox.setPlatformName("Windows");
+					browserOptionsFireFox.setBrowserVersion(readProperty("browserVersion"));
+					browserOptionsFireFox.setCapability("perfecto:options", perfectoOptions);
+					callRemoteDriver(browserOptionsFireFox);
+					break;
+
+				default:
+					driver.quit();
+					System.out.println("Invalid choice of browser");
+				}
+
+				break;
+
+			case "MAC":
+				SafariOptions browserOptionsSafari = new SafariOptions();
+				browserOptionsSafari.setPlatformName("MAC");
+				browserOptionsSafari.setBrowserVersion("15");
+
+				perfectoOptions.put("platformVersion", "macOS Big Sur");
+				perfectoOptions.put("resolution", readProperty("resolution"));
+				perfectoOptions.put("securityToken", readProperty("securityToken"));
+				perfectoOptions.put("waitForAvailableLicense", true);
+				browserOptionsSafari.setCapability("perfecto:options", perfectoOptions);
+				callRemoteDriver(browserOptionsSafari);
+				System.setProperty("BrowserName", "MAC");
+				break;
+
+			default:
+				System.out.println("Invalid choice of Desktop mode");
+			}
+
+		}else if ("androidBrowser".equalsIgnoreCase(browserName)) {
+			UiAutomator2Options uiAutomator2Options = new UiAutomator2Options();
+
+			Map<String, Object> perfectoOptions = new HashMap<>();
+
+			uiAutomator2Options.setCapability("platformName", "Android");
+			perfectoOptions.put("securityToken", readProperty("securityToken"));
+			perfectoOptions.put("platformVersion", "12");
+			perfectoOptions.put("model", "Pixel 6");
+			System.setProperty("virtualDevice", "true");
+			if(readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+				perfectoOptions.put("deviceName", "25221FDF600564");
+				perfectoOptions.put("useVirtualDevice", false);
+				perfectoOptions.put("automationName", "Appium");
+				perfectoOptions.put("appiumVersion", "2.0.0");
+				perfectoOptions.put("automationVersion", "latest");
+				System.setProperty("virtualDevice", "false");
+
+			}
+			else
+				perfectoOptions.put("useVirtualDevice", true);
+
+			perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+			uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+
+			try {
+				driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+
+
+		}else if ("androidTabletBrowser".equalsIgnoreCase(browserName)) {
+			UiAutomator2Options uiAutomator2Options = new UiAutomator2Options();
+			Map<String, Object> perfectoOptions = new HashMap<>();
+
+			uiAutomator2Options.setCapability("platformName", "Android");
+			perfectoOptions.put("securityToken", readProperty("securityToken"));
+			perfectoOptions.put("platformVersion", "12");
+			perfectoOptions.put("model", "Galaxy Tab S8 Plus");
+			perfectoOptions.put("deviceName", "R52T509SL7X");
+			System.setProperty("virtualDevice", "false");
+			if(readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+				perfectoOptions.put("useVirtualDevice", false);
+				perfectoOptions.put("automationName", "Appium");
+				//perfectoOptions.put("useAppiumForWeb", true);
+				perfectoOptions.put("appiumVersion", "2.0.0");
+				perfectoOptions.put("automationVersion", "latest");
+
+				System.setProperty("virtualDevice", "false");
+			}
+			else
+				perfectoOptions.put("useVirtualDevice", true);
+
+			perfectoOptions.put("unicodeKeyboard", true);
+			perfectoOptions.put("resetKeyboard", true);
+
+			perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+
+			uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+
+			try {
+				driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}else if ("iPhoneBrowser".equalsIgnoreCase(browserName)) {
+			UiAutomator2Options uiAutomator2Options = new UiAutomator2Options();
+
+			Map<String, Object> perfectoOptions = new HashMap<>();
+
+			uiAutomator2Options.setCapability("platformName", "iOS");
+			perfectoOptions.put("securityToken", readProperty("securityToken"));
+			perfectoOptions.put("manufacturer", "Apple");
+			perfectoOptions.put("model", "iPhone-12");
+			//System.setProperty("virtualDevice", "true");
+			if(readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+				perfectoOptions.put("deviceName", "00008101-001A3D300C69001E");
+				perfectoOptions.put("useVirtualDevice", false);
+				perfectoOptions.put("automationName", "Appium");
+				perfectoOptions.put("appiumVersion", "2.0.0");
+				perfectoOptions.put("automationVersion", "latest");
+				perfectoOptions.put("useAppiumForWeb", true);
+				perfectoOptions.put("browserName", "Safari");
+				System.setProperty("virtualDevice", "false");
+
+			}
+			else
+				perfectoOptions.put("useVirtualDevice", true);
+
+			//perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+			uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+
+			try {
+				driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+		else if ("IpadAirBrowser".equalsIgnoreCase(browserName)) {
+			UiAutomator2Options uiAutomator2Options = new UiAutomator2Options();
+
+			Map<String, Object> perfectoOptions = new HashMap<>();
+
+			uiAutomator2Options.setCapability("platformName", "iOS");
+			perfectoOptions.put("securityToken", readProperty("securityToken"));
+			perfectoOptions.put("manufacturer", "Apple");
+			perfectoOptions.put("platformBuild", "19E241");
+			perfectoOptions.put("model", "iPad Air \\(5th generation\\)");
+			System.setProperty("virtualDevice", "true");
+			if(readProperty("useVirtualDevice").toString().equalsIgnoreCase("false")) {
+				perfectoOptions.put("deviceName", "00008103-001A68CE11DB001E");
+				perfectoOptions.put("useVirtualDevice", false);
+				perfectoOptions.put("automationName", "Appium");
+				perfectoOptions.put("appiumVersion", "2.0.0");
+				perfectoOptions.put("automationVersion", "latest");
+				perfectoOptions.put("useAppiumForWeb", true);
+				perfectoOptions.put("browserName", "Safari");
+				System.setProperty("virtualDevice", "false");
+
+			}
+			else
+				perfectoOptions.put("useVirtualDevice", true);
+
+			//perfectoOptions.put(CapabilityType.BROWSER_NAME, "Chrome");
+			uiAutomator2Options.setCapability("perfecto:options", perfectoOptions);
+
+			try {
+				driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), uiAutomator2Options);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+
+
+		}else if ("perfecto".equalsIgnoreCase(browserName)) {
+			DesiredCapabilities capabilities = new DesiredCapabilities();
+
+			if(readProperty("browserName").equalsIgnoreCase("chrome"))
+				setUpProxyDetails("chrome", capabilities);
+			else if(readProperty("browserName").equalsIgnoreCase("edge"))
+				setUpProxyDetails("edge", capabilities);
+			else if(readProperty("browserName").equalsIgnoreCase("firefox"))
+				setUpProxyDetails("firefox", capabilities);
+
+			capabilities.setCapability("platformName", readProperty("platformName"));
+			capabilities.setCapability("platformVersion", readProperty("platformVersion"));
+			capabilities.setCapability("browserName", readProperty("browserName"));
+
+			capabilities.setCapability("browserVersion", readProperty("browserVersion"));
+			capabilities.setCapability("location", readProperty("location"));
+			capabilities.setCapability("resolution", readProperty("resolution"));
+			capabilities.setCapability("securityToken", readProperty("securityToken"));
+
+			capabilities.setCapability(CapabilityType.BROWSER_NAME, "Chrome");
+			capabilities.setCapability("enablePopups", "false");
+
+			try {
+				driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), capabilities);
+				driver.manage().window().maximize();
+			} catch (MalformedURLException e) {
+
+				e.printStackTrace();
+			}
+
+		}else if ("browserStack".equalsIgnoreCase(browserName)) {
+			DesiredCapabilities capabilities = new DesiredCapabilities();
+			capabilities.setCapability("browserstack.user", "ashok_NWcuBK");
+			capabilities.setCapability("browserstack.key", "HUpaALaXsYpbqxmHJ1uG");
+			capabilities.setCapability("app", "bs://a31c4ee2595a045e5b301e3ad81cad5486d07e9b");
+
+			capabilities.setCapability("device", "Google Pixel 4");
+			capabilities.setCapability("os_version", "11.0");
+			capabilities.setCapability("project", "POC_BAU_POC");
+			capabilities.setCapability("build", "browserstack-build");
+			capabilities.setCapability("name", "POC_SmokeTest");
+
+
+			try {
+				driver = new AndroidDriver(new URL("http://hub.browserstack.com/wd/hub"), capabilities);
+			} catch (MalformedURLException e) {
+
+				e.printStackTrace();
+			}
+
+		}else {
+
+			//System.setProperty("webdriver.chrome.driver", "Drivers/chromedriver.exe");
+			WebDriverManager.chromedriver().setup();
+			//ChromeOptions options = new ChromeOptions();
+			//options.addArguments("incognito");
+			//options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+			//driver = new ChromeDriver(options);
+
+			//Proxy SetUp
+			setUpProxy();
+			ChromeOptions options = new ChromeOptions();
+
+			LoggingPreferences logPrefs = new LoggingPreferences();
+			logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+			options.setCapability("goog:loggingPrefs", logPrefs);
+
+			Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+			seleniumProxy.setSslProxy("localhost:" + proxy.getPort());
+
+			options.setProxy(seleniumProxy);
+			options.addArguments("--ignore-certificate-errors");
+			//options.addArguments("start-maximized");
+			options.addArguments("--incognito");
+			options.addArguments("--no-sandbox");
+			options.addArguments("--disable-site-isolation-trails");
+			//options.addArguments("--headless", "--window-size=1368,768"); 
+			driver = new ChromeDriver(options);
+
+			//driver = new ChromeDriver();
+			//driver.manage().deleteAllCookies();
+			driver.manage().window().maximize();
+			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+			System.out.println("Chrome Browser launched");
+
+			return driver;
+		}
+		return driver;
+	}
+
+	public void setUpProxy(){
+		proxy = new BrowserMobProxyServer();
+		proxy.setTrustAllServers(true);
+		try {
+
+			proxy.addHeader("X-WynSha", "wyniva-sdjw28nd-1231");
+		} catch (Exception e) {
+			System.err.println("Couldn't add authorization header..");
+			e.printStackTrace();
+		}
+		proxy.start(0);
+	}
+
+	public void closeBrowser() {
+		driver.quit();
+		//driver.close();
+		driver = null;
+		System.out.println("Driver closed.");
+	}
+
+	public void callRemoteDriver(Capabilities capabilities) {
+		try {
+			driver = new RemoteWebDriver(new URL("https://wyndhamhotels.perfectomobile.com/nexperience/perfectomobile/wd/hub/fast"), capabilities);
+			driver.manage().window().maximize();
+		} catch (MalformedURLException e) {
+
+			e.printStackTrace();
+		}
+	}
+
+	public void setUpProxyDetails(String browserName, DesiredCapabilities capabilities) {
+
+		if(browserName.equalsIgnoreCase("chrome")) {
+			ChromeOptions options = new ChromeOptions();
+
+			LoggingPreferences logPrefs = new LoggingPreferences();
+			logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+			options.setCapability("goog:loggingPrefs", logPrefs);
+
+			Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+			seleniumProxy.setSslProxy("localhost:" + proxy.getPort());
+
+			options.setProxy(seleniumProxy);
+			options.addArguments("--ignore-certificate-errors");
+			options.addArguments("--incognito");
+			options.addArguments("--no-sandbox");
+			options.addArguments("--disable-site-isolation-trails");
+			//options.addArguments("--headless", "--window-size=1368,768"); 
+			//driver = new ChromeDriver(options);
+			capabilities.setCapability(ChromeOptions.CAPABILITY, options);
+		}
+		else if(browserName.equalsIgnoreCase("edge")) {
+			EdgeOptions edgeOptions = new EdgeOptions();
+
+			LoggingPreferences logPrefs = new LoggingPreferences();
+			logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+			edgeOptions.setCapability("goog:loggingPrefs", logPrefs);
+
+			Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+			seleniumProxy.setSslProxy("localhost:" + proxy.getPort());
+			edgeOptions.setProxy(seleniumProxy);
+			edgeOptions.addArguments("--ignore-certificate-errors");
+			edgeOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+
+			capabilities.setCapability(ChromeOptions.CAPABILITY, edgeOptions);
+		}
+		else if(browserName.equalsIgnoreCase("firefox")) {
+			FirefoxOptions fOptions = new FirefoxOptions();
+			LoggingPreferences logPrefs = new LoggingPreferences();
+			logPrefs.enable(LogType.BROWSER, Level.SEVERE);
+			fOptions.setCapability("goog:loggingPrefs", logPrefs);
+
+			Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+			seleniumProxy.setSslProxy("localhost:" + proxy.getPort());
+			fOptions.setProxy(seleniumProxy);
+
+			fOptions.addArguments("--ignore-certificate-errors");
+			capabilities.setCapability(ChromeOptions.CAPABILITY, fOptions);
+
+		}
+		else if(browserName.equalsIgnoreCase("safari")) {
+
+		}
+	}
+
+	public WebDriver getDriver() {
+		if (driver != null)
+			return driver;
+		// String browserName = library.readProperty("browserName");
+		String browserName = library.readProperty("browserType");
+		System.setProperty("UserSelectedBrowserMode", browserName);
+		return launchBrowser(browserName);
+	}
+
+	public WebDriver navigateToUrl() {
+		String url = readProperty("url");
+		//driver.get(url);
+
+		if(!(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser"))) {
+			driver.get(url);
+		}
+		else {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			NativePage.switchToContext(driver,"WEBVIEW_1");
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + url);
+
+		return driver;
+	}
+
+	public WebDriver navigateToOlsonUrl() {
+		String url = readProperty("olsonURL");
+		driver.get(url);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + url);
+
+		return driver;
+	}
+
+	public WebDriver navigateToECHOUrl() {
+		String url = readProperty("echoURL");
+		driver.get(url);
+
+		if(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser")) {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			switchToContext(driver, "WEBVIEW");
+		}else {
+			driver.get(url);
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + url);
+
+		return driver;
+	}
+
+	public WebDriver navigateToDynamicUrl(String url) {
+		driver.get(url);
+
+		if(!(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser"))) {
+			driver.get(url);
+		}
+		else {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			NativePage.switchToContext(driver,"WEBVIEW_1");
+		}
+
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + url);
+
+		return driver;
+	}
+
+	public WebDriver navigateToNGVA() {
+		String urlNGVA = readProperty("urlNGVA");
+		driver.get(urlNGVA);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + urlNGVA);
+
+		return driver;
+	}
+
+	public String getTitle() {
+		System.out.println(driver.getTitle());
+		return driver.getTitle();
+	}
+
+	public String readProperty(String key) {
+		try {
+			FileReader fr = new FileReader("Configs/Config.properties");
+			Properties pr = new Properties();
+			pr.load(fr);
+			//System.out.println(pr.getProperty(key));
+
+			return pr.getProperty(key);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public String readTestDataProperty(String key, String fileName) {
+		try {
+			FileReader fr = new FileReader(System.getProperty("user.dir")+ "\\src\\main\\java\\com\\testdata\\"+fileName+".properties");
+			Properties pr = new Properties();
+			pr.load(fr);
+			//System.out.println(pr.getProperty(key));
+
+			return pr.getProperty(key);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void setTestDataProperty(String key, String val,String fileName) {
+		try {
+			FileWriter fr = new FileWriter(System.getProperty("user.dir")+ "\\src\\main\\java\\com\\testdata\\"+fileName+".properties");
+			Properties pr = new Properties();
+			pr.setProperty(key,val);
+			pr.store(fr,"Test Data Modified");
+			//System.out.println(pr.getProperty(key));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public String getDate() {
+		SimpleDateFormat formatter = new SimpleDateFormat("MM-dd_HH-mm");
+		Date date = new Date();
+		String newDate = formatter.format(date);
+		return newDate.toString();
+	}
+
+	public static String getDateSpecificFormat() {
+		SimpleDateFormat formatter = new SimpleDateFormat("EEEE, MMMM d, yyyy");
+		Date date = new Date();
+		String newDate = formatter.format(date);
+		return newDate.toString();
+	}
+
+	public static void main(String args[]) {
+		String d = getDateSpecificFormat();
+		System.out.println(d);
+	}
+
+	public void takeScreenShot(String fileName) {
+		TakesScreenshot obj = (TakesScreenshot) driver;
+		File screenshot = obj.getScreenshotAs(OutputType.FILE);
+		File output = new File("target/screenshots/" + fileName + ".png");
+		System.out.println("Screenshot taken");
+		try {
+			//FileUtils.copyfile(screenshot, output);
+			FileHandler.copy(screenshot, output);
+
+		} catch (IOException e) {
+			//e.printStackTrace();
+		}
+	}
+
+	public List<HashMap<String, String>> readDataFromExcel(String filePath) {
+		List<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
+		try {
+			File f = new File(filePath);
+			;
+			FileInputStream inputStream = new FileInputStream(f);
+
+			Workbook workbook = new XSSFWorkbook(inputStream);
+			Sheet sheet = workbook.getSheetAt(0);
+			int rowCount = sheet.getLastRowNum();
+			for (int i = 1; i < rowCount + 1; i++) {
+				Row row = sheet.getRow(i);
+				HashMap<String, String> temp = new HashMap<String, String>();
+				int j = 0;
+				temp.put("InternalID", String.valueOf((int) row.getCell(j++).getNumericCellValue()));
+				temp.put("Deal Key", row.getCell(j++).getStringCellValue());
+				temp.put("Deal Name", row.getCell(j++).getStringCellValue());
+				temp.put("Country", row.getCell(j++).getStringCellValue());
+				temp.put("Capacity", row.getCell(j++).getStringCellValue());
+				temp.put("First Name", row.getCell(j++).getStringCellValue());
+				temp.put("Last Name / Entity Name", row.getCell(j++).getStringCellValue());
+				temp.put("Screening Type", row.getCell(j++).getStringCellValue().trim().substring(0, 1));
+				temp.put("ID Number", row.getCell(j++).getStringCellValue());
+				temp.put("Date Of Birth", row.getCell(j++).getStringCellValue());
+				temp.put("Nationality", row.getCell(j++).getStringCellValue());
+				temp.put("Address", row.getCell(j++).getStringCellValue());
+				data.add(temp);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return data;
+	}
+
+	public String getLatestFile(String folderPath) {
+		try {
+			System.out.println("Folder Path:" + folderPath);
+			Path path = Paths.get(folderPath);
+			if (Files.isDirectory(path)) {
+				Optional<Path> opPath = Files.list(path)
+						.filter(p -> !Files.isDirectory(p))
+						.sorted((p1, p2) -> Long.valueOf(p2.toFile().lastModified())
+								.compareTo(p1.toFile().lastModified()))
+						.findFirst();
+				if (opPath.isPresent())
+					return opPath.get().toAbsolutePath().toString();
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void clickUsingJavaScript(WebElement element, WebDriver driver) {
+		JavascriptExecutor exe = (JavascriptExecutor) driver;
+		exe.executeScript("arguments[0].click();", element);
+	}
+
+
+	public WebDriver dismissCookie() {
+		try {
+			Thread.sleep(1000);
+			driver.findElement(By.xpath("//span[contains(.,'here')]")).click();
+			Thread.sleep(2000);
+			driver.findElement(By.xpath("//button[@class='modal-close']")).click();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return driver;
+	}
+
+	public static void switchToContext(WebDriver driver, String context) {
+		RemoteExecuteMethod executeMethod = new RemoteExecuteMethod((RemoteWebDriver) driver);
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("name", context);
+		executeMethod.execute(DriverCommand.SWITCH_TO_CONTEXT, params);
+	}
+
+	public WebDriver navigateToBrand(String brandName) {
+		String brandURL = brandName.toLowerCase();
+		String url = readProperty(brandURL);
+		if(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser")) {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			switchToContext(driver, "WEBVIEW");
+		}else {
+			//driver.get(url);
+			driver.navigate().to(url);  
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return driver;
+	}
+
+	//------------------------------new code
+	public WebDriver navigateToUrl(String envType) {
+
+		String url = readProperty("url");
+		if(envType.equalsIgnoreCase("FQA"))
+			url = readProperty("fqaURL");	
+		else
+			url = readProperty("url");
+
+		//driver.get(url);
+
+		if(!(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser"))) {
+			driver.get(url);
+		}
+		else {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			NativePage.switchToContext(driver,"WEBVIEW_1");
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return driver;
+	}
+
+	public WebDriver navigateToUrl(String envType, String brndURL) {
+
+		String urlR = readProperty(brndURL);
+		//brndURL = 
+		String url = urlReturn(envType, urlR);
+
+
+		if(!(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser"))) {
+			driver.get(url);
+		}
+		else {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			NativePage.switchToContext(driver,"WEBVIEW_1");
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Navigated to :" + url);
+
+		return driver;
+	}
+
+	public String urlReturn(String envType, String brandURL) {
+
+		String url = brandURL;
+
+		if(envType.equalsIgnoreCase("FQA"))
+			url = brandURL.replace("rqa", "fqa");	
+		else
+			url = brandURL.replace("fqa", "rqa");
+
+		return url;
+	}
+
+	//-----------------------------
+	public String getCorrespondingEmail(String browserType) {
+		if(browserType.equalsIgnoreCase("local")) {
+
+			return Library.getLibrary().readProperty("BWSChromeEmail");
+
+		}else if (browserType.equalsIgnoreCase("androidBrowser")){
+
+			return Library.getLibrary().readProperty("BWSAndroidEmail");
+
+		}else if (browserType.equalsIgnoreCase("androidTabletBrowser")){
+
+			return Library.getLibrary().readProperty("BWSTabletEmail");
+
+		}else if (browserType.equalsIgnoreCase("iPhoneBrowser")){
+
+			return Library.getLibrary().readProperty("BWSiPhoneEmail");
+
+		}else if (browserType.equalsIgnoreCase("IpadAirBrowser")){
+
+			return Library.getLibrary().readProperty("BWSiPadEmail");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("chrome")){
+			
+			if(Library.getLibrary().readProperty("runningEnv").equalsIgnoreCase("production")) {
+				return Library.getLibrary().readProperty("BWSPrdChromeEmail");
+			}
+			else {
+				return Library.getLibrary().readProperty("BWSChromeEmail");
+			}
+			
+			//return Library.getLibrary().readProperty("BWSChromeEmail");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("edge")){
+
+			return Library.getLibrary().readProperty("BWSEdgeEmail");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("firefox")){
+
+			return Library.getLibrary().readProperty("BWSFirefoxEmail");
+
+		}else {
+			System.out.println("!!!!!!!!!!!!!!!EMAIL is not set!!!!!!!!!!!!");
+			return null;
+		}
+	}
+
+	public String getCorrespondingPassword(String browserType) {
+		if(browserType.equalsIgnoreCase("local")) {
+
+			return Library.getLibrary().readProperty("BWSChromePassword");
+
+		}else if (browserType.equalsIgnoreCase("androidBrowser")){
+
+			return Library.getLibrary().readProperty("BWSAndroidPassword");
+
+		}else if (browserType.equalsIgnoreCase("androidTabletBrowser")){
+
+			return Library.getLibrary().readProperty("BWSTabletPassword");
+
+		}else if (browserType.equalsIgnoreCase("iPhoneBrowser")){
+
+			return Library.getLibrary().readProperty("BWSiPhonePassword");
+
+		}else if (browserType.equalsIgnoreCase("IpadAirBrowser")){
+
+			return Library.getLibrary().readProperty("BWSiPadPassword");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("chrome")){
+
+
+			if(Library.getLibrary().readProperty("runningEnv").equalsIgnoreCase("production")) {
+				return Library.getLibrary().readProperty("BWSPrdChromePassword");
+			}
+			else {
+				return Library.getLibrary().readProperty("BWSChromePassword");
+			}
+			//return Library.getLibrary().readProperty("BWSChromePassword");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("edge")){
+
+			return Library.getLibrary().readProperty("BWSEdgePassword");
+
+		}else if (Library.getLibrary().readProperty("browserName").equalsIgnoreCase("firefox")){
+
+			return Library.getLibrary().readProperty("BWSFirefoxPassword");
+
+		}else {
+			System.out.println("!!!!!!!!!!!!!!!EMAIL is not set!!!!!!!!!!!!");
+			return null;
+		}
+	}
+	
+	
+	//-----------------------------------------------------------
+	public WebDriver navigateToSpecificBrand(String envType) {
+		
+		String brandName = readProperty("brandName");
+		System.setProperty("BrandNameFinal", brandName);
+		String url = returnBrandURL(brandName);
+		if(envType.equalsIgnoreCase("FQA"))
+			url = url.replace("rqa", "fqa");
+		else
+			url = url.replace("fqa", "rqa");
+
+		//driver.get(url);
+
+		if(!(System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("iPhoneBrowser") || System.getProperty("UserSelectedBrowserMode").equalsIgnoreCase("IpadAirBrowser"))) {
+			driver.get(url);
+		}
+		else {
+			Map<String, Object> params2 = new HashMap<>();
+			params2.put("url", url);
+			String res2 = (String) ((RemoteWebDriver) driver).executeScript("mobile:browser:goto", params2);
+			NativePage.switchToContext(driver,"WEBVIEW_1");
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return driver;
+	}
+	
+	
+	public String returnBrandURL(String brandName) {
+		
+		String urlName = readProperty("url");
+		String brandNameCapitalize = brandName.toUpperCase();
+		switch (brandNameCapitalize) {
+		case "DAYSIN":
+				urlName = readProperty("daysin");
+			break;
+
+		case "WYNDHAMREWARDS":
+			urlName = readProperty("wyndhamreward");
+		break;
+		
+		case "WYNDHAMGRANDS":
+			urlName = readProperty("daysin");
+		break;
+		
+		case "TRAVELODGE":
+			urlName = readProperty("travelodge");
+		break;
+		
+		case "SUPER8":
+			urlName = readProperty("super8");
+		break;
+		
+		case "WYNDHAMGARDEN":
+			urlName = readProperty("wyndhamgarden");
+		break;
+		
+		case "LAQUINTHA": //laquintha
+			urlName = readProperty("laqunita");
+		break;
+		
+		
+		default:
+			Assert.assertTrue("Invalid choice of Brand", false);
+		}
+		
+		System.out.println("######### "+ urlName);
+		return urlName;
+	}
+}
