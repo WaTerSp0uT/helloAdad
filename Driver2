@@ -1,0 +1,103 @@
+package com.framework.driver;
+
+import com.framework.utils.Library;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+
+import java.net.URL;
+
+public class Driver {
+
+    // Thread-safe WebDriver instance for parallel test execution
+    private static ThreadLocal<WebDriver> driverPool = new ThreadLocal<>();
+
+    // Private constructor to prevent external instantiation
+    private Driver() {}
+
+    // Returns the WebDriver instance for the current thread
+    public static WebDriver getDriver() {
+        if (driverPool.get() == null) {
+            driverPool.set(createDriver()); // Lazy instantiation per thread
+        }
+        return driverPool.get();
+    }
+
+    // Creates WebDriver instance based on Library config values
+    private static WebDriver createDriver() {
+        WebDriver driver = null;
+
+        // Read config values via Library utility
+        String browser = Library.getInstance().getProperty("browserType").toLowerCase();
+        String execution = Library.getInstance().getProperty("executionType").toLowerCase();
+
+        try {
+            if (execution.equals("remote")) {
+                // Setup remote execution via Selenium Grid
+                URL gridUrl = new URL(Library.getInstance().getProperty("gridURL"));
+                DesiredCapabilities capabilities = new DesiredCapabilities();
+
+                switch (browser) {
+                    case "chrome":
+                        ChromeOptions chromeOptions = new ChromeOptions();
+                        chromeOptions.addArguments("--start-maximized");
+                        capabilities.merge(chromeOptions);
+                        break;
+                    case "firefox":
+                        FirefoxOptions firefoxOptions = new FirefoxOptions();
+                        capabilities.merge(firefoxOptions);
+                        break;
+                    case "edge":
+                        EdgeOptions edgeOptions = new EdgeOptions();
+                        capabilities.merge(edgeOptions);
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported browser for remote execution: " + browser);
+                }
+
+                driver = new RemoteWebDriver(gridUrl, capabilities);
+
+            } else if (execution.equals("local")) {
+                // Local execution using WebDriverManager
+                switch (browser) {
+                    case "chrome":
+                        WebDriverManager.chromedriver().setup();
+                        driver = new org.openqa.selenium.chrome.ChromeDriver();
+                        break;
+                    case "firefox":
+                        WebDriverManager.firefoxdriver().setup();
+                        driver = new org.openqa.selenium.firefox.FirefoxDriver();
+                        break;
+                    case "edge":
+                        WebDriverManager.edgedriver().setup();
+                        driver = new org.openqa.selenium.edge.EdgeDriver();
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported browser for local execution: " + browser);
+                }
+            } else {
+                throw new RuntimeException("Invalid execution type specified: " + execution);
+            }
+
+            driver.manage().window().maximize(); // Common setup
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("WebDriver creation failed: " + e.getMessage());
+        }
+
+        return driver;
+    }
+
+    // Clean up WebDriver after test execution
+    public static void closeDriver() {
+        if (driverPool.get() != null) {
+            driverPool.get().quit();      // End the browser session
+            driverPool.remove();          // Prevent memory leaks
+        }
+    }
+}
