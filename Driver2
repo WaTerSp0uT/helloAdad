@@ -28,71 +28,79 @@ public class Driver {
     }
 
     // Creates WebDriver instance based on Library config values
-    private static WebDriver createDriver() {
-        WebDriver driver = null;
+  private static WebDriver createDriver() {
+    WebDriver driver = null;
 
-        // Read config values via Library utility
-        String browser = Library.getInstance().getProperty("browserType").toLowerCase();
-        String execution = Library.getInstance().getProperty("executionType").toLowerCase();
+    // Read config values via Library utility
+    String browser = Library.getInstance().getProperty("browserType").toLowerCase();
+    String execution = Library.getInstance().getProperty("executionType").toLowerCase();
 
-        try {
-            if (execution.equals("remote")) {
-                // Setup remote execution via Selenium Grid
-                URL gridUrl = new URL(Library.getInstance().getProperty("gridURL"));
-                DesiredCapabilities capabilities = new DesiredCapabilities();
+    try {
+        if (execution.equals("remote")) {
+            // Grid URL from config
+            URL gridUrl = new URL(Library.getInstance().getProperty("gridURL"));
 
-                switch (browser) {
-                    case "chrome":
-                        ChromeOptions chromeOptions = new ChromeOptions();
-                        chromeOptions.addArguments("--start-maximized");
-                        capabilities.merge(chromeOptions);
-                        break;
-                    case "firefox":
-                        FirefoxOptions firefoxOptions = new FirefoxOptions();
-                        capabilities.merge(firefoxOptions);
-                        break;
-                    case "edge":
-                        EdgeOptions edgeOptions = new EdgeOptions();
-                        capabilities.merge(edgeOptions);
-                        break;
-                    default:
-                        throw new RuntimeException("Unsupported browser for remote execution: " + browser);
-                }
+            switch (browser) {
+                case "chrome":
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.addArguments("--start-maximized");
+                    chromeOptions.setCapability("browserName", "chrome");
+                    chromeOptions.setCapability("platformName", "ANY"); // Or specific OS if needed
+                    driver = new RemoteWebDriver(gridUrl, chromeOptions);
+                    break;
 
-                driver = new RemoteWebDriver(gridUrl, capabilities);
+                case "firefox":
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.setCapability("browserName", "firefox");
+                    firefoxOptions.setCapability("platformName", "ANY");
+                    driver = new RemoteWebDriver(gridUrl, firefoxOptions);
+                    break;
 
-            } else if (execution.equals("local")) {
-                // Local execution using WebDriverManager
-                switch (browser) {
-                    case "chrome":
-                        WebDriverManager.chromedriver().setup();
-                        driver = new org.openqa.selenium.chrome.ChromeDriver();
-                        break;
-                    case "firefox":
-                        WebDriverManager.firefoxdriver().setup();
-                        driver = new org.openqa.selenium.firefox.FirefoxDriver();
-                        break;
-                    case "edge":
-                        WebDriverManager.edgedriver().setup();
-                        driver = new org.openqa.selenium.edge.EdgeDriver();
-                        break;
-                    default:
-                        throw new RuntimeException("Unsupported browser for local execution: " + browser);
-                }
-            } else {
-                throw new RuntimeException("Invalid execution type specified: " + execution);
+                case "edge":
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    edgeOptions.setCapability("browserName", "MicrosoftEdge");
+                    edgeOptions.setCapability("platformName", "ANY");
+                    driver = new RemoteWebDriver(gridUrl, edgeOptions);
+                    break;
+
+                default:
+                    throw new RuntimeException("Unsupported browser for remote execution: " + browser);
             }
 
-            driver.manage().window().maximize(); // Common setup
+        } else if (execution.equals("local")) {
+            // Local execution setup
+            switch (browser) {
+                case "chrome":
+                    WebDriverManager.chromedriver().setup();
+                    driver = new org.openqa.selenium.chrome.ChromeDriver();
+                    break;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("WebDriver creation failed: " + e.getMessage());
+                case "firefox":
+                    WebDriverManager.firefoxdriver().setup();
+                    driver = new org.openqa.selenium.firefox.FirefoxDriver();
+                    break;
+
+                case "edge":
+                    WebDriverManager.edgedriver().setup();
+                    driver = new org.openqa.selenium.edge.EdgeDriver();
+                    break;
+
+                default:
+                    throw new RuntimeException("Unsupported browser for local execution: " + browser);
+            }
+        } else {
+            throw new RuntimeException("Invalid execution type specified: " + execution);
         }
 
-        return driver;
+        driver.manage().window().maximize(); // Common post-init setup
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("WebDriver creation failed: " + e.getMessage());
     }
 
+    return driver;
+}
     // Clean up WebDriver after test execution
     public static void closeDriver() {
         if (driverPool.get() != null) {
