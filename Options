@@ -1,0 +1,124 @@
+private static WebDriver createDriver() {
+    WebDriver driver = null;
+
+    String browser = Library.getInstance().getProperty("browserType").toLowerCase();
+    String execution = Library.getInstance().getProperty("executionType").toLowerCase();
+
+    try {
+        // Apply proxy settings globally
+        
+
+        if (execution.equals("remote")) {
+            URL gridUrl = new URL(Library.getInstance().getProperty("gridURL"));
+
+            switch (browser) {
+                case "chrome":
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.addArguments("--remote-allow-origins=*");
+                    chromeOptions.addArguments("--disable-dev-shm-usage");
+                    chromeOptions.addArguments("--ignore-ssl-errors");
+                    chromeOptions.addArguments("--ignore-certificate-errors");
+                    chromeOptions.setCapability("acceptInsecureCerts", true);
+                    chromeOptions.setCapability("browserName", "chrome");
+                    chromeOptions.setCapability("platformName", "ANY");
+
+                    driver = RemoteWebDriver.builder()
+                            .address(gridUrl)
+                            .oneOf(chromeOptions)
+                            .build();
+                    break;
+
+                case "firefox":
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.addArguments("--no-sandbox");
+                    firefoxOptions.addArguments("--disable-dev-shm-usage");
+                    firefoxOptions.addArguments("--ignore-ssl-errors");
+                    firefoxOptions.addArguments("--ignore-certificate-errors");
+                    firefoxOptions.setCapability("acceptInsecureCerts", true);
+                    firefoxOptions.setCapability("browserName", "firefox");
+                    firefoxOptions.setCapability("platformName", "ANY");
+
+                    driver = RemoteWebDriver.builder()
+                            .address(gridUrl)
+                            .oneOf(firefoxOptions)
+                            .build();
+                    break;
+
+                case "edge":
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    edgeOptions.addArguments("--no-sandbox");
+                    edgeOptions.addArguments("--remote-allow-origins=*");
+                    edgeOptions.addArguments("--disable-dev-shm-usage");
+                    edgeOptions.addArguments("--ignore-ssl-errors");
+                    edgeOptions.addArguments("--ignore-certificate-errors");
+                    edgeOptions.setCapability("acceptInsecureCerts", true);
+                    edgeOptions.setCapability("browserName", "MicrosoftEdge");
+                    edgeOptions.setCapability("platformName", "ANY");
+
+                    driver = RemoteWebDriver.builder()
+                            .address(gridUrl)
+                            .oneOf(edgeOptions)
+                            .build();
+                    break;
+
+                default:
+                    throw new RuntimeException("Unsupported browser for remote: " + browser);
+            }
+
+        } else if (execution.equals("local")) {
+            switch (browser) {
+                case "chrome":
+                    WebDriverManager.chromedriver().setup();
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.addArguments("--remote-allow-origins=*");
+                    chromeOptions.addArguments("--disable-dev-shm-usage");
+                    chromeOptions.addArguments("--ignore-ssl-errors");
+                    chromeOptions.addArguments("--ignore-certificate-errors");
+                    chromeOptions.setCapability("acceptInsecureCerts", true);
+
+                    driver = new org.openqa.selenium.chrome.ChromeDriver(chromeOptions);
+                    break;
+
+                case "firefox":
+                    WebDriverManager.firefoxdriver().setup();
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.addArguments("--no-sandbox");
+                    firefoxOptions.addArguments("--disable-dev-shm-usage");
+                    firefoxOptions.addArguments("--ignore-ssl-errors");
+                    firefoxOptions.addArguments("--ignore-certificate-errors");
+                    firefoxOptions.setCapability("acceptInsecureCerts", true);
+
+                    driver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
+                    break;
+
+                case "edge":
+                    WebDriverManager.edgedriver().setup();
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    edgeOptions.addArguments("--no-sandbox");
+                    edgeOptions.addArguments("--remote-allow-origins=*");
+                    edgeOptions.addArguments("--disable-dev-shm-usage");
+                    edgeOptions.addArguments("--ignore-ssl-errors");
+                    edgeOptions.addArguments("--ignore-certificate-errors");
+                    edgeOptions.setCapability("acceptInsecureCerts", true);
+
+                    driver = new org.openqa.selenium.edge.EdgeDriver(edgeOptions);
+                    break;
+
+                default:
+                    throw new RuntimeException("Unsupported browser for local: " + browser);
+            }
+        } else {
+            throw new RuntimeException("Invalid execution type specified: " + execution);
+        }
+
+        driver.manage().window().maximize();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("WebDriver creation failed: " + e.getMessage());
+    }
+
+    return driver;
+}
