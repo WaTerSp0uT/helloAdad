@@ -7,3 +7,28 @@ public void waitForPageToLoad() {
         }
     });
 }
+
+
+
+public void monitorReadyState() {
+    JavascriptExecutor js = (JavascriptExecutor) driver;
+    String state = "";
+    int attempts = 0;
+
+    while (!"complete".equals(state) && attempts < 50) { // max ~10s
+        state = (String) js.executeScript("return document.readyState");
+        System.out.println("Current readyState: " + state);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        attempts++;
+    }
+
+    if ("complete".equals(state)) {
+        System.out.println("Page fully loaded.");
+    } else {
+        System.out.println("Timeout waiting for page load.");
+    }
+}
