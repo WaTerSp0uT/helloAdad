@@ -40,3 +40,18 @@ public void validatePartialTextInElement(WebElement element, String expectedPart
     assertTrue(actualText.contains(expectedPartialText),
         "Expected text to contain: '" + expectedPartialText + "', but found: '" + actualText + "'");
 }
+
+public void switchToWindowWithPartialTitle(String partialTitle) {
+    Set<String> windowHandles = driver.getWindowHandles();
+
+    for (String handle : windowHandles) {
+        driver.switchTo().window(handle);
+        String currentTitle = driver.getTitle();
+        if (currentTitle.contains(partialTitle)) {
+            System.out.println("Switched to window with title: " + currentTitle);
+            return;
+        }
+    }
+
+    throw new RuntimeException("No window found with title containing: " + partialTitle);
+}
