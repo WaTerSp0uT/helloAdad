@@ -11,3 +11,23 @@ public void clickLinkByText(String linkText) {
         throw new RuntimeException("Failed to click link with text: " + linkText, e);
     }
 }
+
+public void switchToNewTabAndMaximize() {
+    try {
+        Set<String> allWindows = driver.getWindowHandles();
+        String currentWindow = driver.getWindowHandle();
+
+        for (String window : allWindows) {
+            if (!window.equals(currentWindow)) {
+                driver.switchTo().window(window);
+                driver.manage().window().maximize();
+                System.out.println("Switched to new tab and maximized.");
+                return;
+            }
+        }
+
+        throw new RuntimeException("No new tab found to switch.");
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to switch to new tab and maximize window", e);
+    }
+}
