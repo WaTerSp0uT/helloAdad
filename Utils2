@@ -55,3 +55,34 @@ public void switchToWindowWithPartialTitle(String partialTitle) {
 
     throw new RuntimeException("No window found with title containing: " + partialTitle);
 }
+
+
+public void switchToWindowWithPartialTitle(String partialTitle, int timeoutSeconds) {
+    int elapsed = 0;
+    int pollInterval = 500; // in ms
+
+    while (elapsed < timeoutSeconds * 1000) {
+        Set<String> windowHandles = driver.getWindowHandles();
+
+        for (String handle : windowHandles) {
+            driver.switchTo().window(handle);
+            String currentTitle = driver.getTitle();
+
+            if (currentTitle != null && currentTitle.contains(partialTitle)) {
+                System.out.println("Switched to window with title: " + currentTitle);
+                return;
+            }
+        }
+
+        try {
+            Thread.sleep(pollInterval);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread was interrupted while waiting for window with title: " + partialTitle);
+        }
+
+        elapsed += pollInterval;
+    }
+
+    throw new RuntimeException("Timeout: No window found with title containing: " + partialTitle);
+}
