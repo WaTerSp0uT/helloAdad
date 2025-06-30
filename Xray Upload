@@ -1,0 +1,86 @@
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+
+public class XrayUploader {
+
+    public static void uploadResultsToXray(String reportPath, String testExecutionKey, String token) throws IOException {
+        String url = "https://xray.cloud.getxray.app/api/v2/import/execution/cucumber?testExecKey=" + testExecutionKey;
+
+        File reportFile = new File(reportPath);
+        byte[] reportBytes = Files.readAllBytes(reportFile.toPath());
+
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + token);
+        conn.setDoOutput(true);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(reportBytes);
+        }
+
+        int responseCode = conn.getResponseCode();
+        System.out.println("Xray upload response code: " + responseCode);
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+    }
+}
+
+***///////////////////////////
+
+XrayUploader.uploadResultsToXray("target/cucumber.json", "YOUR_TEST_EXEC_KEY", "YOUR_XRAY_TOKEN_HERE");
+
+
+
+*****///////////////////////////import io.cucumber.java.AfterAll;
+
+public class Hooks {
+
+    @AfterAll
+    public static void afterAll() {
+        try {
+            XrayUploader.uploadResultsToXray("target/cucumber.json", "YOUR_TEST_EXEC_KEY", "YOUR_XRAY_TOKEN_HERE");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+********///////////////////////////
+
+YAML::
+
+upload-to-xray:
+  stage: report
+  script:
+    - curl -H "Content-Type: application/json" -H "Authorization: Bearer $XRAY_TOKEN" -X POST --data @target/cucumber.json "https://xray.cloud.getxray.app/api/v2/import/execution/cucumber?testExecKey=$TEST_EXEC_KEY"
+
+****///////////////////
+
+stages:
+  - test
+  - report
+
+run-automation-tests:
+  stage: test
+  script:
+    - mvn clean test
+  artifacts:
+    paths:
+      - target/cucumber.json
+
+upload-to-xray:
+  stage: report
+  dependencies:
+    - run-automation-tests
+  script:
+    - curl -H "Content-Type: application/json" -H "Authorization: Bearer $XRAY_TOKEN" -X POST --data @target/cucumber.json "https://xray.cloud.getxray.app/api/v2/import/execution/cucumber?testExecKey=$TEST_EXEC_KEY"
+
+
