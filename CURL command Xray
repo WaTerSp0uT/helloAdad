@@ -1,0 +1,5 @@
+curl -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_XRAY_TOKEN_HERE" \
+     -X POST \
+     --data @target/cucumber.json \
+     "https://xray.cloud.getxray.app/api/v2/import/execution/cucumber?testExecKey=YOUR_TEST_EXEC_KEY"
