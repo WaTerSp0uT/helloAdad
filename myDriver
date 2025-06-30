@@ -51,7 +51,6 @@ public class DriverFactory2 {
 
         try {
             // Global proxy setup
-            Proxy proxy = new Proxy();
             System.setProperty("http.proxyHost", "blabla.COM");
             System.setProperty("http.proxyPort", "80");
 
@@ -63,11 +62,6 @@ public class DriverFactory2 {
                 switch (browser) {
                     case "firefox":
                         FirefoxOptions firefoxOptions = new FirefoxOptions();
-                        firefoxOptions.setProxy(proxy);
-                        firefoxOptions.addArguments("--no-sandbox");
-                        firefoxOptions.addArguments("--disable-dev-shm-usage");
-                        firefoxOptions.addArguments("--ignore-ssl-errors");
-                        firefoxOptions.addArguments("--ignore-certificate-errors");
                         firefoxOptions.setCapability("acceptInsecureCerts", true);
                         firefoxOptions.setCapability("browserName", "firefox");
                         firefoxOptions.setCapability("platformName", "ANY");
@@ -76,15 +70,10 @@ public class DriverFactory2 {
 
                     case "edge":
                         EdgeOptions edgeOptions = new EdgeOptions();
-                        edgeOptions.setProxy(proxy);
-                        edgeOptions.addArguments("--no-sandbox");
-                        edgeOptions.addArguments("--remote-allow-origins=*");
-                        edgeOptions.addArguments("--disable-dev-shm-usage");
-                        edgeOptions.addArguments("--ignore-ssl-errors");
-                        edgeOptions.addArguments("--ignore-certificate-errors");
                         edgeOptions.setCapability("acceptInsecureCerts", true);
                         edgeOptions.setCapability("browserName", "MicrosoftEdge");
                         edgeOptions.setCapability("platformName", "ANY");
+
                         driver = new RemoteWebDriver(gridUrl, edgeOptions);
                         break;
 
@@ -107,26 +96,20 @@ public class DriverFactory2 {
             } else if (execution.equals("local")) {
                 switch (browser) {
                     case "firefox":
-                        WebDriverManager.firefoxdriver().setup();
                         FirefoxOptions firefoxOptions = new FirefoxOptions();
-                        firefoxOptions.addArguments("--no-sandbox");
-                        firefoxOptions.addArguments("--disable-dev-shm-usage");
-                        firefoxOptions.addArguments("--ignore-ssl-errors");
-                        firefoxOptions.addArguments("--ignore-certificate-errors");
-                        firefoxOptions.setCapability("acceptInsecureCerts", true);
+                       
                         driver = new FirefoxDriver(firefoxOptions);
                         break;
 
                     case "edge":
-                        WebDriverManager.edgedriver().setup();
                         EdgeOptions edgeOptions = new EdgeOptions();
-                        edgeOptions.setProxy(proxy);
                         edgeOptions.addArguments("--no-sandbox");
                         edgeOptions.addArguments("--remote-allow-origins=*");
                         edgeOptions.addArguments("--disable-dev-shm-usage");
                         edgeOptions.addArguments("--ignore-ssl-errors");
                         edgeOptions.addArguments("--ignore-certificate-errors");
                         edgeOptions.setCapability("acceptInsecureCerts", true);
+
                         driver = new EdgeDriver(edgeOptions);
                         break;
 
