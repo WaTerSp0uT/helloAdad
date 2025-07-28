@@ -27,3 +27,24 @@ cd project-root
 
 # Build the project and download dependencies
 mvn clean install
+
+
+🧪 Running Tests
+Run all tests:
+mvn test
+Run a specific tag:
+mvn test -Dcucumber.filter.tags="@SmokeTest"
+
+🛠 Configuration
+All configurations such as environment URLs, browser settings, and credentials are managed in the config.properties or environment-specific property files.
+📄 Reporting
+Cucumber HTML Reports are generated under the /target/cucumber-reports directory after each test run.
+
+🔄 CI/CD Integration
+This project is integrated with GitLab CI using a .gitlab-ci.yml file that supports:
+Build and test stages
+Report publishing
+Environment targeting
+
+👥 Contributing
+We welcome contributions. Please follow our branching strategy and commit conventions.
