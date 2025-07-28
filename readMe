@@ -12,3 +12,18 @@ This is a modular and scalable test automation framework built using **Java**, *
 - **Design Pattern**: Page Object Model (POM)
 - **Version Control**: Git (with GitLab integration)
 - **CI/CD**: GitLab CI (YAML-based pipeline)
+
+🚀 Installation
+Before installing the project, make sure you meet the following prerequisites:
+✅ Access to the GitLab Repository
+You must have access to the private GitLab repository. If you don't have access yet, please contact the administrator to request permission.
+
+Once the prerequisites are met, follow these steps:
+# Clone the repository
+git clone https://gitlab.com/your-repo-url
+
+# Navigate into the project directory
+cd project-root
+
+# Build the project and download dependencies
+mvn clean install
