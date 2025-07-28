@@ -47,4 +47,23 @@ Report publishing
 Environment targeting
 
 👥 Contributing
-We welcome contributions. Please follow our branching strategy and commit conventions.
+We welcome and encourage contributions to this project. Please follow the branching strategy and commit conventions outlined below to maintain consistency across the team.
+🔀 Branch Naming Convention
+When creating a new branch, please use the following naming format:
+<PROJECT_NAME>_<TEST_TYPE>_<TEST_ID>
+PROJECT_NAME – Name of the project or application (e.g., ARTEMIS)
+TEST_TYPE – Type of test being implemented (Regression, Smoke, Progression, etc.)
+TEST_ID – The specific test ID(s) you are working on
+Example:
+ARTEMIS_Regression_T1234
+ARTEMIS_Smoke_T5678
+ARTEMIS_Progression_T9101
+
+🔹 A single branch should include no more than five test cases (i.e., a maximum of five test IDs per commit).
+🛠 Framework Contributions
+For framework-level changes, use the following format:
+Framework_<description>
+Examples:
+Framework_API_enhancement
+Framework_Readme_update
+Framework_POM_refactor
