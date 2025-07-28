@@ -1,0 +1,14 @@
+# Test Automation Framework
+
+This is a modular and scalable test automation framework built using **Java**, **Selenium WebDriver**, **Cucumber BDD**, **JUnit**, **Page Object Model (POM)**, and **Maven**. It is designed to support testing multiple applications with clean separation, reusability, and maintainability.
+
+## 📦 Tech Stack
+
+- **Language**: Java
+- **Build Tool**: Maven
+- **Test Runner**: JUnit
+- **Automation**: Selenium WebDriver
+- **BDD Framework**: Cucumber
+- **Design Pattern**: Page Object Model (POM)
+- **Version Control**: Git (with GitLab integration)
+- **CI/CD**: GitLab CI (YAML-based pipeline)
