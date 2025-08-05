@@ -7,3 +7,16 @@
 
             isExtentInitialized = true;
         }
+
+
+public class ReportConfigLoader {
+    static {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        System.setProperty("extent.reporter.spark.out", "test-output/SparkReport/Spark_" + timestamp + ".html");
+        System.setProperty("extent.reporter.pdf.out", "test-output/PdfReport/ExtentPdf_" + timestamp + ".pdf");
+    }
+
+    public static void init() {
+        // nothing needed, just ensures class is loaded
+    }
+}
