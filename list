@@ -20,3 +20,32 @@ public class ReportConfigLoader {
         // nothing needed, just ensures class is loaded
     }
 }
+
+
+Hi [Team Lead’s Name],
+Here’s a quick summary of where we are with the Selenium/Cucumber → Jira Xray integration:
+
+We can create Test Executions directly in Jira Xray (Maestro-hosted).
+Our framework successfully generates a cucumber.json test report.
+I’ve generated a Jira authentication token.
+The next step is to post these results into Jira Xray via the REST API. We need guidance from the Maestro team on the correct authentication process, API endpoint for Cucumber results, and any Maestro-specific network/security requirements.
+I’ve drafted the email below, which you can send to the Maestro team to request their help:
+
+Subject: Request for Guidance on Posting Test Results to Jira Xray
+Dear [Maestro Team],
+
+I am currently working on integrating our Selenium/Cucumber framework with Jira Xray (hosted on Maestro).
+
+At this stage:
+
+I am able to create Test Executions in Jira Xray.
+Our framework successfully generates a cucumber.json report.
+I have generated an authentication token from Jira.
+The next step is to post these results from our framework into Jira Xray. I would appreciate any guidance or documentation you can provide on:
+The correct authentication process for Maestro-hosted Jira/Xray.
+The appropriate REST API endpoint(s) for importing Cucumber results.
+Any network, security, or configuration requirements specific to Maestro.
+Thank you for your assistance in helping us complete this integration.
+Best regards,
+[Your Name]
+[Your Position/Team]
