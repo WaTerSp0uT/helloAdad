@@ -103,3 +103,23 @@ public class ElementUtils {
         return concat.toString();
     }
 }
+
+
+public void clickCheckboxIfRowExists(WebDriver driver, String searchText) {
+    String xpath = String.format(
+        "//tr[td[contains(normalize-space(.), '%s')]]//td[1]//input[@type='checkbox']",
+        searchText
+    );
+
+    List<WebElement> elements = driver.findElements(By.xpath(xpath));
+
+    if (!elements.isEmpty()) {
+        WebElement checkbox = elements.get(0);
+        if (!checkbox.isSelected()) {
+            checkbox.click();
+        }
+        System.out.println("Checkbox clicked for row: " + searchText);
+    } else {
+        System.out.println("Row with text '" + searchText + "' not found. Skipping...");
+    }
+}
