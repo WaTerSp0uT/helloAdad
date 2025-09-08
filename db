@@ -8,3 +8,38 @@ SELECT
 FROM TEST T
 LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
 ORDER BY T.TS_TEST_ID, DS.DS_STEP_ORDER;
+
+
+
+🔹 Step 1. Fill in Connection Details
+Server type: Database Engine (already correct)
+Server name: dtqa9d1.fematdl.net,1433 (already correct)
+Authentication: SQL Server Authentication (good)
+Login:
+This depends on what your ALM DBAs have set up. Commonly it’s td.
+In your screenshot you typed yarok. That will only work if your DBAs created a SQL login for you with that name.
+Password: Provided by your DBA (must match the login).
+👉 If you don’t know the td account password, you’ll need to ask the DBA team for the SQL login that ALM uses. Without the right credentials, SSMS won’t let you in.
+🔹 Step 2. Connect & Select Database
+After you connect successfully, look in the Object Explorer on the left.
+Expand Databases.
+You should see your ALM project DB: tm_ecaps_db0.
+Right-click → New Query.
+🔹 Step 3. Run the Query
+Paste this query:
+SELECT 
+    T.TS_TEST_ID        AS [Test ID],
+    T.TS_NAME           AS [Test Name],
+    CAST(T.TS_DESCRIPTION AS VARCHAR(MAX)) AS [Test Description],
+    DS.DS_STEP_NAME     AS [Step Name],
+    CAST(DS.DS_DESCRIPTION AS VARCHAR(MAX)) AS [Step Action],
+    CAST(DS.DS_EXPECTED AS VARCHAR(MAX))   AS [Expected Result]
+FROM TEST T
+LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
+ORDER BY T.TS_TEST_ID, DS.DS_STEP_ORDER;
+That will pull all test cases + steps.
+🔹 Step 4. Export to CSV
+After results show up, right-click the results grid.
+Choose Save Results As → CSV.
+Save it, and you’ll have a clean export.
+⚠️ The missing database dropdown in your login window is expected — SSMS only shows that after you connect. Once connected, you’ll be able to pick tm_ecaps_db0 in the query window.
