@@ -43,3 +43,16 @@ After results show up, right-click the results grid.
 Choose Save Results As → CSV.
 Save it, and you’ll have a clean export.
 ⚠️ The missing database dropdown in your login window is expected — SSMS only shows that after you connect. Once connected, you’ll be able to pick tm_ecaps_db0 in the query window.
+
+
+
+
+
+SELECT 
+  AL_ITEM_ID,
+  AL_DESCRIPTION      AS FolderName,
+  AL_FATHER_ID        AS ParentId,
+  AL_ABSOLUTE_PATH    AS AbsPath
+FROM ALL_LISTS
+WHERE AL_DESCRIPTION = 'WBI'
+ORDER BY AL_ABSOLUTE_PATH;
