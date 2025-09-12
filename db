@@ -84,3 +84,68 @@ FROM TEST T
 JOIN ALL_LISTS L 
     ON T.TS_SUBJECT = L.AL_ITEM_ID
 WHERE L.AL_DESCRIPTION = 'WBI';
+
+
+
+
+SELECT 
+    T.TS_TEST_ID        AS [Test ID],
+    T.TS_NAME           AS [Test Name],
+
+    -- Clean test description
+    REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+      REPLACE(REPLACE(CAST(T.TS_DESCRIPTION AS VARCHAR(MAX)),
+        CHAR(160), ' '),              -- non-breaking space
+        '&nbsp;', ' '),
+        '<br>', CHAR(10)),
+        '<br/>', CHAR(10)),
+        '<br />', CHAR(10)),
+        '<p>', ''),
+        '</p>', ''),
+        '<html>', ''),
+        '</html>', ''),
+        '<body>', ''),
+        '</body>', '')                 AS [Test Description],
+
+    DS.DS_STEP_NAME     AS [Step Name],
+
+    -- Clean step action
+    REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+      REPLACE(REPLACE(REPLACE(CAST(DS.DS_DESCRIPTION AS VARCHAR(MAX)),
+        CHAR(160), ' '),
+        '&nbsp;', ' '),
+        '<br>', CHAR(10)),
+        '<br/>', CHAR(10)),
+        '<br />', CHAR(10)),
+        '<p>', ''),
+        '</p>', ''),
+        '<html>', ''),
+        '</html>', ''),
+        '<body>', ''),
+        '</body>', ''),
+        '<div align="left">', '')      AS [Step Action],
+
+    -- Clean step expected
+    REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+      REPLACE(REPLACE(REPLACE(CAST(DS.DS_EXPECTED AS VARCHAR(MAX)),
+        CHAR(160), ' '),
+        '&nbsp;', ' '),
+        '<br>', CHAR(10)),
+        '<br/>', CHAR(10)),
+        '<br />', CHAR(10)),
+        '<p>', ''),
+        '</p>', ''),
+        '<html>', ''),
+        '</html>', ''),
+        '<body>', ''),
+        '</body>', ''),
+        '<div align="left">', '')      AS [Expected Result],
+
+    L.AL_DESCRIPTION    AS [Folder Name],
+    L.AL_ABSOLUTE_PATH  AS [Folder Path]
+
+FROM TEST T
+JOIN ALL_LISTS L  ON T.TS_SUBJECT = L.AL_ITEM_ID
+LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
+WHERE L.AL_DESCRIPTION = 'WBI'
+ORDER BY T.TS_TEST_ID, DS.DS_STEP_ORDER;
