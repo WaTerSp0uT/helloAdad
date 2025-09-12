@@ -226,3 +226,53 @@ JOIN ALL_LISTS L
 LEFT JOIN DESSTEPS DS 
     ON T.TS_TEST_ID = DS.DS_TEST_ID
 WHERE L.AL_DESCRIPTION = 'WBI'
+
+
+
+SELECT REPLACE(
+         REPLACE(CAST(DS.DS_EXPECTED AS VARCHAR(MAX)), '<p>', ''),
+       '</p>', '') AS [Expected Result]
+FROM TEST T
+JOIN ALL_LISTS L ON T.TS_SUBJECT = L.AL_ITEM_ID
+LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
+WHERE L.AL_DESCRIPTION = 'WBI';
+
+================
+
+SELECT REPLACE(
+         REPLACE(
+           REPLACE(
+             REPLACE(CAST(DS.DS_EXPECTED AS VARCHAR(MAX)), '<p>', ''),
+           '</p>', ''),
+         '<br>', CHAR(10)),
+       '<br/>', CHAR(10)) AS [Expected Result]
+FROM TEST T
+JOIN ALL_LISTS L ON T.TS_SUBJECT = L.AL_ITEM_ID
+LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
+WHERE L.AL_DESCRIPTION = 'WBI';
+
+======
+
+SELECT REPLACE(
+         REPLACE(
+           REPLACE(
+             REPLACE(
+               REPLACE(
+                 REPLACE(
+                   REPLACE(CAST(DS.DS_EXPECTED AS VARCHAR(MAX)), '<p>', ''),
+                 '</p>', ''),
+               '<br>', CHAR(10)),
+             '<br/>', CHAR(10)),
+           '<br />', CHAR(10)),
+         '<html>', ''),
+       '</html>', '') AS [Expected Result]
+FROM TEST T
+JOIN ALL_LISTS L ON T.TS_SUBJECT = L.AL_ITEM_ID
+LEFT JOIN DESSTEPS DS ON T.TS_TEST_ID = DS.DS_TEST_ID
+WHERE L.AL_DESCRIPTION = 'WBI';
+
+
+
+
+
+
