@@ -9,3 +9,16 @@ To filter out noise like images, fonts, and stylesheets:
 .*\.(png|jpg|jpeg|gif|bmp|ico|css|js|woff|woff2|svg|ttf|eot)
 
 You can also click “Add suggested Excludes” to fill these automatically.
+
+
+Option	Short Description
+Continue	❗ Ignores the error and keeps running the next sampler in the thread.
+👉 Use this if errors are expected and shouldn't stop the test.
+Start Next Thread Loop	🚫 Skips the rest of the current iteration, and starts a new loop iteration for the same thread.
+👉 Useful if each loop represents a business flow and you want to abandon the current one on error.
+Stop Thread	🔚 Stops only this one user/thread from running further. Others continue.
+👉 Use this when one user's flow fails critically and should not proceed.
+Stop Test	⛔ Completely stops the entire test, but finishes the current samplers already in execution.
+👉 Good for critical failures that affect the whole system.
+Stop Test Now	🚨 Immediately kills the test and terminates all running threads without waiting.
+👉 Use with caution; good for emergencies like server crashes or data corruption.
