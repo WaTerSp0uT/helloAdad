@@ -22,3 +22,29 @@ Stop Test	⛔ Completely stops the entire test, but finishes the current sampler
 👉 Good for critical failures that affect the whole system.
 Stop Test Now	🚨 Immediately kills the test and terminates all running threads without waiting.
 👉 Use with caution; good for emergencies like server crashes or data corruption.
+
+
+
+🔹 1. Thread Behavior (Execution Flow)
+JMeter will start 50 users.
+It will start them over a 5-second ramp-up period → so 10 users/sec.
+Each user will start executing your samplers (steps 01 to 08) in a loop (Loop Count = Infinite).
+But since you specified a 30-second duration, each thread/user will keep looping through the test until 30 seconds have passed.
+Once 30 seconds is up, no new loops start, and the test will shut down gracefully.
+🔹 2. On Success:
+Each user goes through the full sequence (01 to 08).
+After finishing, they loop again if time is left (within 30 sec).
+This continues until time expires.
+🔹 3. On Failure (Sampler Error):
+Because Continue is selected:
+If any sampler (like login, search, etc.) fails (e.g., 500 error, timeout), JMeter will ignore the error and move to the next sampler.
+The thread keeps executing until 30 seconds are over — errors won’t stop the test.
+⚠️ Common Misunderstanding
+You mentioned:
+"I thought it's going to be running the whole thread group within 30 seconds."
+🛑 It doesn’t mean "each user runs once within 30 seconds."
+✅ It means: JMeter will keep all 50 users running in loops for 30 seconds.
+So:
+Some users may loop 2 or 3 times.
+Others may not finish a second loop depending on how long the steps take.
+
