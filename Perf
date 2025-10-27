@@ -1,0 +1,11 @@
+Since your app is hosted on multiple subdomains:
+^https://tdl\.(eservices|isource)\.fema\.gov/.*
+
+Or if you're not sure how many subdomains you’ll hit:
+^https://tdl\..*\.fema\.gov/.*
+
+Exclude Pattern(s)
+To filter out noise like images, fonts, and stylesheets:
+.*\.(png|jpg|jpeg|gif|bmp|ico|css|js|woff|woff2|svg|ttf|eot)
+
+You can also click “Add suggested Excludes” to fill these automatically.
