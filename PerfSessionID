@@ -11,7 +11,7 @@ Add > Post Processors > Regular Expression Extractor
 ⚙️ 2. Configure the extractor:
 Example if it's in a cookie or HTML:
 Name of variable: sessionId
-Regular Expression: JSESSIONID=(.+?);
+Regular Expression: <text.*?name="sessionId">(.*?)</text
 Template: $1$
 Match No: 1
 Or if it's in JSON:
@@ -41,3 +41,15 @@ Avoid expired values	Never hardcode session/token values
 Consistency under load	Correlate dynamically per user thread
 Debug	Use “View Results Tree” to find and extract values correctly
 Would you like me to help you identify the correct extractor setup using your actual response content (if you paste or screenshot it)?
+
+
+
+🛠️ Full Setup for Your Extractor
+Field	Value
+Name of created variable	sessionId
+Apply to	Main sample only
+Field to check	Body
+Regular Expression	<text.*?name="sessionId">(.*?)</text
+Template	$1$
+Match No.	1
+Default Value	NOT_FOUND (optional, helps debug if it fails)
