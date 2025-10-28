@@ -1,0 +1,51 @@
+storing your .jmx test plans in GitLab is absolutely the right approach, especially for collaboration, version control, CI/CD integration, and traceability.
+✅ Can We Save .jmx Files in GitLab?
+✔️ Yes — it’s best practice to:
+Store your JMeter test plans (.jmx) in GitLab
+Use branches/tags for versioning
+Collaborate via merge requests
+Run tests via GitLab CI/CD pipelines
+🧱 Recommended Repository Structure
+Here’s a clean and scalable structure you can use:
+jmeter-performance-tests/
+├── README.md                         <-- Project usage guide
+├── jmeter-tests/
+│   ├── login-flow.jmx                <-- Test for login
+│   ├── search-flow.jmx               <-- Test for search
+│   ├── full-user-journey.jmx         <-- End-to-end test
+├── data/
+│   ├── users.csv                     <-- Test data files
+│   ├── search-terms.csv
+├── results/
+│   ├── latest-results.jtl           <-- Result logs (optional)
+│   └── HTMLReport/                   <-- Auto-generated report (optional)
+├── scripts/
+│   ├── run-jmeter.sh                <-- Shell script to run JMeter
+├── .gitlab-ci.yml                   <-- GitLab pipeline config
+└── config/
+    └── test-env.properties           <-- Custom variables
+🧑‍💻 Simple User Guide for Teams (Short & Shareable)
+🔹 1. Clone the Repo
+git clone https://gitlab.com/your-org/jmeter-performance-tests.git
+cd jmeter-performance-tests
+🔹 2. Open or Modify a Test Plan
+jmeter -t jmeter-tests/login-flow.jmx
+Or open via GUI:
+jmeter
+→ File > Open > jmeter-tests/login-flow.jmx
+🔹 3. Run a Test from Terminal
+jmeter -n -t jmeter-tests/login-flow.jmx -l results/results.jtl -e -o results/HTMLReport
+🔹 4. Review the HTML Report
+Open results/HTMLReport/index.html in a browser.
+🔹 5. Push Changes
+git checkout -b feature/update-login-test
+git add .
+git commit -m "Updated login test with correlation"
+git push origin feature/update-login-test
+Create a merge request for review.
+💡 Pro Tips
+Task	Recommendation
+Test Data	Store in /data/, use CSV Data Set Config
+Result Artifacts	Don't commit .jtl or /HTMLReport/ — add to .gitignore
+Parameterization	Use variables via user.properties or /config/
+Collaboration	Use merge requests with review comments
