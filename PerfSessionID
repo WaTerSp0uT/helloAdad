@@ -1,0 +1,43 @@
+You're asking a very important and common question in performance test scripting:
+➡️ "What do we do when session IDs or tokens change each time?"
+You're 100% correct: in the screenshot, the step 04_SavingLoginSession_POST is failing with a 500 Internal Server Error, and you're manually passing a hardcoded sessionId and jsfPIVUser.
+This is not sustainable, because these are dynamic values — they expire, or change per login/session, and must be captured dynamically from a previous response using Correlation.
+✅ What To Do Instead: Use Correlation (Dynamic Parameter Extraction)
+Here’s the correct and scalable solution 👇
+🔁 Step-by-Step: Dynamic Session ID Handling in JMeter
+🧩 1. Add a Regular Expression Extractor or JSON Extractor (depending on response type)
+Right-click the request that comes just before the login POST, where sessionId is set (likely a GET or redirect):
+Add > Post Processors > Regular Expression Extractor
+⚙️ 2. Configure the extractor:
+Example if it's in a cookie or HTML:
+Name of variable: sessionId
+Regular Expression: JSESSIONID=(.+?);
+Template: $1$
+Match No: 1
+Or if it's in JSON:
+Add > Post Processors > JSON Extractor
+
+Variable name: sessionId
+JSON Path Expression: $.sessionId
+🔎 Use the "View Results Tree" → Response Data tab to inspect where sessionId appears.
+🧪 3. Use the extracted value dynamically in your login POST request
+Instead of hardcoding:
+sessionId = 21X71616029788X719
+Use:
+sessionId = ${sessionId}
+So now it will:
+Extract the fresh value from the previous response
+Reuse it in your next request
+⛔ What You Should NOT Do:
+❌ Manually capture the session ID from the browser and paste it in your JMX file before each test
+Why?
+It won’t scale
+It breaks under concurrency
+It invalidates repeatability
+✅ Best Practices Summary
+Goal	Use
+Dynamic tokens (sessionId, auth, viewstate, etc.)	Regular Expression Extractor or JSON Extractor
+Avoid expired values	Never hardcode session/token values
+Consistency under load	Correlate dynamically per user thread
+Debug	Use “View Results Tree” to find and extract values correctly
+Would you like me to help you identify the correct extractor setup using your actual response content (if you paste or screenshot it)?
