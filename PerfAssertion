@@ -1,0 +1,47 @@
+
+
+✅ Does JMeter Check Status Code by Default?
+No, JMeter does not automatically validate that the response is HTTP 200 unless you add an assertion.
+So why does it show as ✅ green (pass) in "View Results Tree"?
+Because:
+JMeter considers any successful connection (e.g., server responded) as a pass.
+It doesn't care about response code or page content unless you explicitly tell it to.
+🟢 Green = No sampler or connection-level error
+🔴 Red = Connection failed (e.g., timeout, DNS failure, etc.)
+💡 A 500 Internal Server Error will still show as green unless you add an assertion that fails when the response code ≠ 200.
+🧪 What Is an Assertion in JMeter?
+An Assertion checks if your response is correct and expected.
+You can assert:
+✅ Status code (e.g., 200 OK)
+🧾 Response contains specific text (e.g., “Welcome”)
+📄 JSON/XML structure
+📏 Response size/time
+🔧 How to Add Assertions
+🔹 Add Response Code Assertion (e.g., 200 OK)
+Right-click on a request
+→ Add → Assertions → Response Assertion
+Under Response Field to Test, choose:
+Response Code
+Under Pattern Matching Rules, choose:
+Equals
+In Patterns to Test, type:
+200
+✅ This will fail if response ≠ 200.
+🔹 Add Text Assertion (e.g., Page contains “Welcome”)
+Add another Response Assertion
+Under Response Field to Test, select:
+Text Response
+In Patterns to Test, enter:
+e.g., Welcome or Dashboard or a unique string
+✅ This will ensure the page loaded expected content.
+🧠 Why Assertions Matter
+Without Assertions	With Assertions
+Only checks if the server responded	Checks if the response is correct
+May miss failures like HTTP 500 or broken pages	Catches logic errors, bad sessions, etc.
+✅ False sense of success	✅ True application validation
+🔍 Example Setup
+You're testing login flow. You might:
+Assert 200 on login POST
+Assert "Welcome, John" on dashboard page
+Assert "Logout" button is present
+That gives confidence that the session worked — not just that the server responded.
