@@ -48,3 +48,36 @@ So:
 Some users may loop 2 or 3 times.
 Others may not finish a second loop depending on how long the steps take.
 
+
+Most Likely Cause: Missing Cookie/Session Handling
+By default, JMeter doesn't share cookies across samplers unless you explicitly add:
+🧩 Cookie Manager:
+Test Plan > Thread Group > Add > Config Element > HTTP Cookie Manager
+Stores and reuses cookies automatically across requests (like a browser).
+Is required for most session-based web apps.
+
+
+🔧 How to Fix This — Step-by-Step
+✅ Add HTTP Cookie Manager
+Right-click Thread Group → Add → Config Element → HTTP Cookie Manager
+No extra config needed (leave defaults).
+(Optional) Add Cache Manager
+Right-click Thread Group → Add → Config Element → HTTP Cache Manager
+Simulates browser cache — not always needed but helpful in some flows.
+🔍 Re-run your test
+Watch the login step and see if the 500 goes away.
+Also check if session/cookies are being passed (View Results Tree → Request tab).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
