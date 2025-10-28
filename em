@@ -1,17 +1,4 @@
-Hi [Manager’s Name],
-I wanted to let you know that I’m planning to take some time off from October 6th through October 17th for a family vacation. I’ll be sending you an official email shortly with the formal request, but just wanted to give you a heads-up first.
-I’ve also spoken with Julia and she’s agreed to cover all of my responsibilities during this period, so there will be full coverage while I’m away.
-Thanks!
 
-
-Subject: Vacation Request: October 6th – October 17th
-Dear [Manager’s Name],
-I hope this message finds you well.
-I am writing to formally request vacation leave from October 6th through October 17th as I will be taking a family vacation during this time.
-To ensure that work continues smoothly in my absence, I have coordinated with Julia and she has kindly agreed to cover all of my responsibilities while I am away.
-Please let me know if you need any additional information or if there are any concerns regarding this request.
-Thank you very much for your understanding and support.
-Best regards,
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -123,3 +110,13 @@ public void clickCheckboxIfRowExists(WebDriver driver, String searchText) {
         System.out.println("Row with text '" + searchText + "' not found. Skipping...");
     }
 }
+
+
+Implemented request filtering to capture only relevant app traffic
+Grouped requests using Transaction Controllers for clean reporting
+Added Think Time timers to simulate realistic user behavior
+Implemented Assertions for response codes and content validation
+Correlated dynamic values (e.g., sessionId) using Regex Extractor
+Analyzed failures (500 errors) and resolved by restoring missing requests
+Reviewed and matched LoadRunner graphs using JMeter plugins (response time, throughput, hits/sec, etc.)
+Planned GitLab repository structure for storing and sharing .jmx test plans with the team
