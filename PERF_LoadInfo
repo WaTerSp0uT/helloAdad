@@ -1,0 +1,57 @@
+What Is "Max Execution" Locally?
+It depends on your machine, but here’s a rule of thumb:
+Machine Type	Safe Max Threads	Notes
+🧑‍💻 Standard laptop (8 GB RAM, 4 cores)	50–100 threads	May lag with listeners enabled
+💻 Developer desktop (16+ GB RAM, 8+ cores)	100–300 threads	Avoid complex post-processors
+🖥️ Load testing server	500+ threads	Use non-GUI mode and distributed testing
+
+
+
+✅ Key   Summary Report Metrics (Explained Simply)
+Metric	          What It Means	                                          |What to Look For (Typical Benchmarks)
+Label	            Name of the request or transaction	                    |Grouped logically (e.g., Login, Search, Logout)
+# Samples	        Total requests sent for that label	                    |Consistency in counts expected for each request
+Average	          Mean response time for the request (ms)                 |Login: < 1,500ms
+                                                                          |Search: < 2,000ms
+                                                                          |Logout: < 1,000ms
+Min / Max	        Fastest / slowest recorded times	                      |Max should not spike > 5s unless expected (e.g., large searches)
+Std. Dev.	        Response time variability	                              |Lower is better (< 10–20% of average is ideal)
+Throughput	      Requests/sec processed by the server (incl. all users)	|Higher is better; reflects server's handling capacity
+Received KB/sec	  Download rate per second	                              |For bandwidth usage insights (optional)
+Errors %	        % of failed requests	                                  |Should be 0%, or < 1% max
+
+✅ What is Throughput in JMeter?
+Throughput = How many requests are processed per second (or minute)
+🧃 Real-World Example:
+Imagine you own a juice shop.
+You can serve 5 customers per minute — that's your throughput.
+In JMeter terms:
+If your test sends 300 requests in 1 minute, your throughput = 5 requests/second (or 300/minute).
+
+
+JMeter Report Descriptions
+1.🧮 Aggregate Report
+A tabular summary of all request metrics:
+📊 Avg, Min, Max, Std. Dev, Throughput, Error %, etc.
+Ideal for: Overall performance snapshot across all samplers.
+2.🌲 View Results Tree
+Shows individual request details (request, response, headers, etc.)
+Useful for: Debugging, validating response content, and seeing failures.
+3.📈 Graph Results
+A live graph of response time, throughput, and error rate.
+Great for: Visual trends during the test (not post-run focused).
+4.📊 Summary Report
+Similar to Aggregate Report but includes additional throughput & network metrics.
+Good for: Comparing performance under different thread settings.
+5.🧾 View Results in Table
+Displays each individual request line-by-line in a table view.
+Useful for: Checking timing and result code for each sample.
+6.⏱ Transaction Per Second (TPS)
+Graph showing how many transactions (requests) are executed per second.
+Use this to evaluate: System load handling and request frequency.
+7.📉 Response Time Over Time
+Tracks how response time changes throughout the test duration.
+Helps you spot: Performance degradation, slowdowns, or recovery trends.
+8.👤 Active Threads Over Time
+Shows how many users (threads) were active at each point in time.
+Useful to verify: Ramp-up behavior and concurrent user load.
