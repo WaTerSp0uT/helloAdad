@@ -55,3 +55,25 @@ Helps you spot: Performance degradation, slowdowns, or recovery trends.
 8.👤 Active Threads Over Time
 Shows how many users (threads) were active at each point in time.
 Useful to verify: Ramp-up behavior and concurrent user load.
+
+
+
+
+✅ Yes, exactly! That command:
+jmeter -n -t jmeter-tests/login-flow.jmx -l results/results.jtl -e -o results/HTMLReport
+…does all of the following in one go:
+✅ What It Does:
+Step	What Happens
+-n	Runs JMeter in non-GUI mode (headless) — best for performance testing
+-t	Loads your test plan file: login-flow.jmx
+-l	Saves raw test results to results.jtl (log file)
+-e	Tells JMeter to generate HTML report
+-o	Outputs the HTML report to the results/HTMLReport folder
+📁 After Running — You Get:
+A detailed, interactive HTML report at:
+results/HTMLReport/index.html
+This includes:
+📊 Response times (avg, median, percentiles)
+🧾 Errors and assertion failures
+📈 Graphs for throughput, active threads, response codes
+✅ Transaction performance breakdown
