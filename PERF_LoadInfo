@@ -57,10 +57,16 @@ Shows how many users (threads) were active at each point in time.
 Useful to verify: Ramp-up behavior and concurrent user load.
 
 
+The Debug Sampler is a special test element that prints out JMeter variables, properties, and sampler data during your test.
+📌 Purpose:
+To check values of extracted variables (like sessionId)
+To debug your test plan logic
+To see what's happening behind the scenes
+
 
 
 ✅ Yes, exactly! That command:
-jmeter -n -t jmeter-tests/login-flow.jmx -l results/results.jtl -e -o results/HTMLReport
+jmeter -n -t Performance.jmx -l results/results.jtl -e -o results/HTMLReport
 …does all of the following in one go:
 ✅ What It Does:
 Step	What Happens
