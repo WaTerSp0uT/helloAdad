@@ -22,3 +22,18 @@ Step 1: Plan and Design the Test Scenario
 Identify the key business flows you want to simulate.
 Define the load pattern (e.g., number of users, ramp-up time).
 Choose test environment and target URLs.
+
+
+
+
+Step 2: Configure Browser for Recording
+To capture real browser interactions using JMeter’s HTTP(S) Test Script Recorder, configure your browser to route traffic through JMeter's proxy.
+2.1 Open Firefox Browser
+2.2 Update Network Settings
+a. Navigate to Firefox → Settings
+b. Scroll down to Network Settings and click "Settings..."
+c. Choose Manual proxy configuration
+d. Enter the following values:
+HTTP Proxy: 127.0.0.1
+Port: 8888
+Check: “Also use this proxy for HTTPS”
