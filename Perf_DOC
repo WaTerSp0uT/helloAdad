@@ -57,3 +57,53 @@ c. Click on the Start button (green triangle) to begin recording.
 
 
 
+4.0 Configure Browser with Certificate
+This step is necessary for recording HTTPS traffic using JMeter. When JMeter acts as a proxy, it generates a temporary certificate that must be trusted by your browser to avoid security warnings.
+4.1 Start the Recorder
+In the JMeter GUI, go to the HTTP(S) Test Script Recorder element and click the Start button.
+4.2 Install the Certificate
+If you are recording a secure (HTTPS) website, JMeter will automatically generate a temporary root certificate:
+ApacheJMeterTemporaryRootCA.crt (located in the JMeter bin/ directory).
+This certificate must be installed in your browser to avoid "untrusted connection" warnings.
+4.3 Import the Certificate in Firefox
+Open Firefox and go to Settings → Privacy & Security
+Scroll down to Certificates and click View Certificates
+In the Certificate Manager, go to the Authorities tab
+Click Import… and select the JMeter certificate (ApacheJMeterTemporaryRootCA.crt)
+Accept the trust prompt and click OK
+📸 [Screenshots showing the Certificate Manager and Import button are correctly placed below this step]
+5.0 Record Test Case
+This step captures browser activity and translates it into a test script using JMeter's built-in proxy recorder.
+Steps:
+a. Return to the HTTP(S) Test Script Recorder in JMeter and click Start.
+b. In the browser, perform the desired user journey (e.g., log in, browse pages, log out). JMeter will capture these actions as HTTP requests.
+c. JMeter will log each HTTP request under the Recording Controller in your test plan tree.
+d. Once done, click the Stop button in the HTTP(S) Test Script Recorder.
+Captured requests are now saved in your test plan for review and refinement.
+6.0 Refine the Test Case
+Refining ensures your recorded test script is optimized, clean, and readable.
+Steps:
+a. After recording, review the generated test plan.
+b. Inspect all recorded requests under the Recording Controller.
+c. Remove unnecessary or irrelevant requests (e.g., images, scripts, analytics calls).
+d. Add a View Results Tree listener to your Thread Group to monitor test output.
+e. Save the test plan as a .jmx file (File → Save Test Plan As…).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
