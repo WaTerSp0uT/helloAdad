@@ -92,6 +92,22 @@ e. Save the test plan as a .jmx file (File → Save Test Plan As…).
 
 
 
+3.0 Configure Request Filtering (Optional but Recommended)
+To reduce unnecessary noise in your recorded scripts (such as calls to images, fonts, and stylesheets), configure Request Filtering in the HTTP(S) Test Script Recorder:
+3.1 Switch to Request Filtering Tab
+After adding the HTTP(S) Test Script Recorder, click on the "Request Filtering" tab.
+3.2 Apply Filters Based on URL Pattern
+In the “Include” section, add domain filters for the application you're testing.
+Example (for FEMA URLs):
+.*https://tdl\.(eservices|isource)\.fema\.gov.*
+If unsure how many subdomains are involved, use a wildcard like:
+.*fema\.gov.*
+3.3 Add Exclusion Patterns
+To filter out static files (e.g., images, fonts, JavaScript, CSS), use the “Exclude” section. Add the following pattern:
+.*\.(png|jpg|jpeg|gif|bmp|ico|css|js|woff|woff2|svg|ttf|eot)*
+You can also click "Add Suggested Excludes" to auto-populate these filters.
+📸 (Include screenshot here of the Request Filtering tab with filled Include/Exclude patterns)
+
 
 
 
