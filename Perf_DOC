@@ -37,3 +37,23 @@ d. Enter the following values:
 HTTP Proxy: 127.0.0.1
 Port: 8888
 Check: “Also use this proxy for HTTPS”
+
+
+
+Step 3: Start Recording in JMeter
+3.1 Add HTTP(S) Test Script Recorder
+a. In JMeter, right-click on Test Plan → Add → Non-Test Elements → HTTP(S) Test Script Recorder
+📸 [Screenshot of adding the recorder]
+3.2 Set the Target Controller
+b. In the recorder window, set Target Controller to:
+→ Test Plan > HTTP(S) Test Script Recorder
+(This ensures all recorded requests are added under the selected test plan section.)
+📸 [Screenshot of controller section]
+3.3 Start Recording
+c. Click on the Start button (green triangle) to begin recording.
+📸 [Screenshot of Start button highlighted]
+
+
+
+
+
