@@ -1,2 +1,12 @@
 Purpose:
 This process document defines the operational procedures for designing, developing, and executing performance test scripts using Apache JMeter. It also outlines how to collect and document performance results for analysis and reporting purposes.
+
+
+
+Recommended Revision of Section 6.0
+Using Apache JMeter, performance tests are created to simulate real-world load by defining user behavior and events that occur during a testing session. JMeter generates load using virtual users, allowing consistent and repeatable testing by emulating typical user interactions on the system under test.
+The performance testing process includes the following key phases:
+Designing the test: Define the scope, goals, and expected load. Set up test environments and identify key business transactions to simulate.
+Creating the script: Develop JMeter test plans by modeling end-user behavior using samplers, controllers, timers, and extractors.
+Executing the test: Run the JMeter test plan, either locally or in a distributed mode. Monitor system metrics and ensure proper load generation.
+Analyzing results: Use listeners and external integrations (e.g., InfluxDB/Grafana) to evaluate performance trends, identify bottlenecks, and compare results against SLAs.
