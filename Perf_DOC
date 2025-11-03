@@ -10,3 +10,15 @@ Designing the test: Define the scope, goals, and expected load. Set up test envi
 Creating the script: Develop JMeter test plans by modeling end-user behavior using samplers, controllers, timers, and extractors.
 Executing the test: Run the JMeter test plan, either locally or in a distributed mode. Monitor system metrics and ensure proper load generation.
 Analyzing results: Use listeners and external integrations (e.g., InfluxDB/Grafana) to evaluate performance trends, identify bottlenecks, and compare results against SLAs.
+
+
+
+
+
+
+7.0 Develop
+This section outlines how to design and record a performance test using Apache JMeter.
+Step 1: Plan and Design the Test Scenario
+Identify the key business flows you want to simulate.
+Define the load pattern (e.g., number of users, ramp-up time).
+Choose test environment and target URLs.
