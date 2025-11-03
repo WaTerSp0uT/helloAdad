@@ -114,6 +114,29 @@ You can also click "Add Suggested Excludes" to auto-populate these filters.
 
 
 
+. Rename recorded requests to use a clear and consistent naming format.
+Each sampler (HTTP Request) should be renamed to reflect the business action or page it represents. Use a simple, consistent convention such as:
+[Step Number]_[Action/ScreenName]_[Request Type]
+🔹 Examples:
+01_Open_Home_Page_GET
+02_Set_Username_Password_POST
+03_AuthorizeSession_GET
+04_SavingLoginSession_POST
+05_FormValidation_GET
+...
+13_LogOutAction_GET
+14_RedirectToHomePage_GET
+This makes the script easier to:
+Understand during review
+Debug during failures
+Report on key transaction timings
+📌 Best Practice: Keep the names concise but descriptive, avoid spaces (use underscores), and prefix with a two-digit step number for clear sequence.
+
+
+
+
+
+
 
 
 
