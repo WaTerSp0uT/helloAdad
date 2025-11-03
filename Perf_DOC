@@ -135,6 +135,50 @@ Report on key transaction timings
 
 
 
+✅ 8.0 Configure Thread Group
+The Thread Group defines how users are simulated in your JMeter test. It controls the number of virtual users, how they ramp up, and how often they execute the test scenario.
+8.1 Add Thread Group
+To add a Thread Group:
+Right-click on Test Plan → Add → Threads (Users) → Thread Group
+8.2 Set Thread Group Parameters
+Configure the following fields:
+Number of Threads (Users): 50
+(Simulates 50 virtual users)
+Ramp-Up Period (seconds): 5
+(Each user starts with 0.1s delay — or 10 users/sec)
+Loop Count: Specify how many times each user should execute the test
+→ Use a number (e.g., 2) or check "forever" with a defined duration.
+8.3 Error Handling Strategy
+Set the Action to be taken after a Sampler error:
+Option	Description
+Continue	Ignores error, continues with next sampler. Use if errors are expected.
+Start Next Thread Loop	Skips current iteration and begins a new one. Useful for loops.
+Stop Thread	Stops only the current thread (user).
+Stop Test	Finishes current samplers then stops entire test.
+Stop Test Now	Immediately aborts all threads and the test — use for critical issues.
+📌 Choose based on whether you want to gracefully handle errors or abort the test entirely.
+✅ 9.0 Move Actions Under Thread Group
+After recording or designing your test:
+Move all HTTP Request samplers, Logic Controllers, and Configuration Elements under the Thread Group.
+This ensures that your test logic is executed per user as intended.
+Drag and drop recorded samplers into the Thread Group.
+Organize them logically (use Transaction Controllers or Simple Controllers if needed).
+Make sure no samplers are left under the Test Plan or outside a Thread Group.
+✅ 10.0 Manage Cookies and Browser Cache
+JMeter does not handle cookies automatically across requests unless you explicitly add a cookie manager. Similarly, browser caching behavior is not simulated by default.
+10.1 Add HTTP Cookie Manager
+To maintain session cookies (e.g., login sessions), add a Cookie Manager:
+Right-click on Thread Group → Add → Config Element → HTTP Cookie Manager
+This enables JMeter to store and send cookies like a real browser.
+10.2 Add HTTP Cache Manager (Optional)
+To simulate browser caching behavior, optionally add a Cache Manager:
+Right-click on Thread Group → Add → Config Element → HTTP Cache Manager
+It helps avoid reloading static resources unnecessarily.
+Useful for realistic simulations where caching impacts performance or behavior.
+📌 While not always needed, it's helpful in applications that rely on cache headers or return different responses based on cache state.
+
+
+
 
 
 
