@@ -1,0 +1,15 @@
+10.1 Add HTTP Cookie Manager
+The HTTP Cookie Manager allows JMeter to store and send cookies just like a real browser. This is critical for handling login sessions and maintaining user state across requests.
+Steps:
+Right-click on your Thread Group
+Navigate to:
+Add → Config Element → HTTP Cookie Manager
+No extra configuration is needed for basic usage
+📌 Tip: Enable the option "Clear cookies each iteration" if you want each virtual user to simulate a fresh session on every loop.
+10.2 Add HTTP Cache Manager
+The HTTP Cache Manager simulates browser caching behavior, which helps make performance testing more accurate for web apps that utilize static resources and cache-control headers.
+Steps:
+Right-click on your Thread Group
+Navigate to:
+Add → Config Element → HTTP Cache Manager
+Default configuration is sufficient for most use cases
