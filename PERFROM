@@ -35,3 +35,39 @@ Incorrect regular expression
 Wrong "Field to check" option
 Extraction from the wrong sampler
 Set a default value to avoid null variables crashing your test (e.g., NOT_FOUND).
+
+
+
+
+
+
+12. Group Requests Using Transaction Controller
+In real-world scenarios, a single business action (like logging in, searching, or checking out) involves multiple HTTP requests. Grouping these related requests into one Transaction Controller helps simulate the full action as a single unit and measure its aggregate performance (overall time for all included steps).
+12.1 Purpose of Transaction Controller
+Combines multiple samplers (requests) into a logical transaction block.
+Measures overall response time for the entire action, not just individual requests.
+Provides cleaner reports by showing the duration of complete business actions.
+Makes test results easier to read, especially for performance analysis.
+12.2 How to Add a Transaction Controller
+Right-click on your Thread Group → Add → Logic Controller → Transaction Controller.
+Give it a descriptive name (e.g., Login_Transaction, Search_Transaction).
+Drag and drop all relevant HTTP Requests under this controller.
+(Optional but recommended) Check the box:
+✅ Generate parent sample
+This allows JMeter to report a single entry for the whole transaction in results.
+12.3 Example Use Case
+Login Scenario:
+GET /loginPage.jsp
+POST /authenticateUser
+GET /homePage.jsp
+All of the above steps can be grouped under a Transaction Controller named Login_Transaction.
+12.4 Reporting Behavior
+If “Generate parent sample” is checked, you will see only the transaction in the results (with total time).
+If unchecked, JMeter shows the transaction and each individual request separately.
+This is useful if you want both detailed and grouped stats.
+12.5 Best Practices
+Use one Transaction Controller per business action.
+Always name them clearly (e.g., Search_Transaction, Checkout_Flow).
+Always verify that the requests are placed inside the controller, not alongside.
+Consider nesting multiple transactions under Simple Controllers for structure.
+
