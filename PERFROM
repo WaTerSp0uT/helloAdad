@@ -121,3 +121,59 @@ Use Gaussian Random Timer for natural-feeling delays.
 Avoid using too many Constant Timers — it can cause artificial synchronization.
 Don’t place timers at the Test Plan level — keep delays targeted.
 
+
+
+
+
+
+
+
+
+
+14. Validate Responses with Assertions
+Assertions are used in JMeter to verify that responses from the server meet expected criteria. They help determine whether the application under test behaves correctly under load, not just whether it responds.
+By adding assertions, you can:
+Validate response content
+Check HTTP status codes
+Ensure correct redirection or form behavior
+Detect hidden errors in responses (like stack traces or timeouts)
+14.1 Types of Common Assertions in JMeter
+a. Response Assertion
+Checks whether a response contains (or doesn’t contain) specific text or patterns.
+How to Add:
+Right-click on an HTTP Request
+Add → Assertions → Response Assertion
+Set these fields:
+Apply to: Main sample
+Field to Test: Response Text (or Response Code, Headers, etc.)
+Pattern Matching Rule: Contains / Equals / Matches
+Pattern to Test: (e.g., Welcome, 200 OK, Error not found)
+✅ Example:
+Verify that the login page contains the phrase: Welcome, user!
+b. Duration Assertion
+Fails the test if response time exceeds a defined threshold.
+Use Case: Enforce SLA (e.g., response must be < 3 seconds)
+c. Size Assertion
+Validates the size of the response body.
+Use Case: Prevents sending empty or malformed responses.
+d. JSON Assertion (via Plugin)
+Used to assert values in structured JSON responses.
+Use Case: APIs returning JSON payloads
+Example: Validate that "status": "success"
+e. XPath Assertion
+For asserting XML structure/content (e.g., in SOAP or HTML DOM).
+14.2 Best Practices for Assertions
+Tip	Why
+Use Response Assertion for key business flow steps	Ensures functionality is intact under load
+Avoid checking for generic phrases like “OK”	Can cause false positives
+Don't over-assert on static resources	Focus assertions on business-relevant endpoints
+Combine assertions with Debug Sampler during setup	Helps diagnose if extraction or logic is failing
+Use assertion messages for clarity	Add custom messages to easily debug failures
+14.3 Where to Place Assertions
+Add under each HTTP Request or Sampler where validation is needed.
+Group assertions logically under Transaction Controllers if validating a full flow.
+Avoid putting assertions under the Thread Group directly unless they apply globally.
+
+
+
+
