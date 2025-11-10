@@ -1,0 +1,37 @@
+11. Handle Dynamic Parameters Using Regular Expression Extractor
+In performance testing, dynamic parameters such as session IDs, tokens, or request IDs often change with each test run. If not handled properly, these parameters can cause test failures or incorrect test results. JMeter’s Regular Expression Extractor allows you to capture these values and reuse them in subsequent requests.
+11.1 Identify Dynamic Parameters
+Before extracting:
+Record a full test flow using HTTP(S) Test Script Recorder.
+Compare successive test runs to spot values that change dynamically (e.g., session_id, authToken, viewState, etc.).
+Look in Request/Response bodies or headers where the value is generated or returned.
+11.2 Add Regular Expression Extractor
+To extract a dynamic value:
+Select the request (sampler) that receives the response containing the dynamic value.
+Right-click on the request → Add → Post Processors → Regular Expression Extractor.
+Example Setup:
+Setting	Value
+Name	Extract Session ID
+Apply to	Main sample only
+Field to check	Body (or Header, URL, etc., based on where the value appears)
+Reference Name	session_id
+Regular Expression	session_id":"(\w+)"
+Template	$1$
+Match No.	1
+Default Value	NOT_FOUND
+✅ This will store the extracted value in a variable ${session_id}.
+11.3 Use the Extracted Variable
+Now, use the ${session_id} in any subsequent request that needs this token.
+Example:
+In the next HTTP Request:
+Authorization: Bearer ${session_id}
+Or in the request body:
+{"sessionId": "${session_id}"}
+11.4 Tips & Best Practices
+Always give meaningful names to extractors (e.g., Extract_CSRFToken, GetOrderID).
+Use Debug Sampler and View Results Tree to confirm your value was captured correctly.
+If the parameter is missing, check for:
+Incorrect regular expression
+Wrong "Field to check" option
+Extraction from the wrong sampler
+Set a default value to avoid null variables crashing your test (e.g., NOT_FOUND).
