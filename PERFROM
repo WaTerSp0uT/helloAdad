@@ -71,3 +71,53 @@ Always name them clearly (e.g., Search_Transaction, Checkout_Flow).
 Always verify that the requests are placed inside the controller, not alongside.
 Consider nesting multiple transactions under Simple Controllers for structure.
 
+
+
+
+
+
+
+13. Add Think Time and Timers
+In real-world scenarios, users don’t click through a website instantly. They pause to read, fill out forms, or review content. This delay is referred to as think time. In JMeter, Timers are used to simulate these pauses and create more realistic test execution patterns.
+Without timers, JMeter threads (virtual users) execute requests in rapid succession, putting unnatural load on the server.
+13.1 Types of Timers in JMeter
+Here are the most commonly used timers to simulate think time and delay:
+a. Constant Timer
+Introduces a fixed delay (in milliseconds) before each request.
+Example:
+A Constant Timer of 3000 adds a 3-second pause before the sampler.
+Use When:
+You want consistent delay (e.g., waiting between login and dashboard load).
+b. Gaussian Random Timer
+Adds a random delay with a Gaussian (bell curve) distribution.
+Parameters:
+Constant Delay Offset – base delay in ms (e.g., 2000)
+Deviation – range of variation (e.g., 500)
+Example: Simulates an average 2s delay, with natural variation ±500ms.
+Use When:
+You want realistic delays to mimic varied user behavior.
+c. Uniform Random Timer
+Adds random delay within a fixed range.
+Parameters:
+Random Delay Maximum – max added time
+Constant Delay Offset – base delay
+Example: Delay = offset + random(0 to max)
+Use When:
+You want a flat range of variability (less natural than Gaussian).
+13.2 How to Add a Timer
+Right-click on the Sampler (or Controller) where you want to add delay.
+Navigate to:
+Add → Timer → [Choose Timer Type]
+Configure the timer values based on the type (e.g., 3000 for 3 seconds).
+📌 Timers apply before the sampler they're attached to.
+13.3 Where to Place Timers
+Placement	Effect
+Before individual samplers	Adds delay before that request only
+Under a Transaction Controller	Applies delay before each request within the transaction
+Under a Thread Group	Adds delay before every request in the test (not usually ideal)
+13.4 Best Practices
+Simulate realistic behavior: Users typically pause 1–5 seconds between actions.
+Use Gaussian Random Timer for natural-feeling delays.
+Avoid using too many Constant Timers — it can cause artificial synchronization.
+Don’t place timers at the Test Plan level — keep delays targeted.
+
