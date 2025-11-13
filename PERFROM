@@ -230,3 +230,21 @@ Save results in .jtl file for post-analysis	Can import .jtl into listeners later
 Use transaction controllers to group requests	So listeners show meaningful business-level performance instead of just atomic calls
 
 
+
+
+
+
+
+
+
+Hey Peter, quick heads up — I’m working on setting up performance test distribution using GitLab CI, and I need to install and register a GitLab Runner on VM-78. Could you either log in and help set that up, or grant me access to that box so I can do it myself? 
+If it's easier, I can also jump on and use your creds just to get it configured. Let me know what works best. Thanks!
+
+
+
+
+
+
+
+
+
