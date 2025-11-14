@@ -296,3 +296,32 @@ jmeter_perf_test:
     expire_in: 1 day
 
 
+
+
+
+stages:
+  - performance-test
+
+jmeter_perf_test:
+  stage: performance-test
+  tags:
+    - jmeter  # must match the tag assigned to our runner
+  script:
+    - echo "Starting JMeter performance test..."
+    - pwsh -Command "cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -t `"$env:CI_PROJECT_DIR\CIS_Performance_Part1.jmx`" -l results.jtl -e -o report"
+  artifacts:
+    paths:
+      - results.jtl
+      - report/
+    expire_in: 1 day
+
+
+
+
+
+
+
+
+
+
+
