@@ -267,3 +267,15 @@ jmeter_perf_test:
 
 
 
+stages:
+  - test
+
+connectivity_check:
+  stage: test
+  tags:
+    - jmeter  # Make sure this tag matches the one you used when registering the runner
+  script:
+    - echo "✅ Hello from GitLab Runner on the VM!"
+
+
+
