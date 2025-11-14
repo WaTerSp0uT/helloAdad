@@ -336,4 +336,10 @@ script:
 
 
 
+script:
+  - echo "Starting JMeter performance test..."
+  - pwsh -Command "`$ts = Get-Date -Format yyyyMMdd_HHmmss; `$reportDir = 'report_' + `$ts; cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -t `"$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx`" -l results.jtl -e -o `$reportDir"
+
+
+
 
