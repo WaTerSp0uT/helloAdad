@@ -246,5 +246,24 @@ https://docs.gitlab.com/runner/?utm_source=chatgpt.com
 
 
 
+stages:
+  - performance-test
+
+jmeter_perf_test:
+  stage: performance-test
+  tags:
+    - jmeter  # must match your runner's tag
+  script:
+    - echo "Starting JMeter performance test..."
+    - cd C:\Users\yaro\Desktop\gitlab\performance\apache-jmeter\bin
+    - jmeter.bat -n -t C:\GitLab-Runner\builds\my_test_plan.jmx -l results.jtl -e -o report
+  artifacts:
+    paths:
+      - results.jtl
+      - report/
+    expire_in: 1 day
+
+
+
 
 
