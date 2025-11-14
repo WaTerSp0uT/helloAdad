@@ -279,3 +279,20 @@ connectivity_check:
 
 
 
+stages:
+  - performance-test
+
+jmeter_perf_test:
+  stage: performance-test
+  tags:
+    - jmeter   # must match the tag assigned to your runner
+  script:
+    - echo "Starting JMeter performance test..."
+    - pwsh -Command 'cd "C:\Users\proskop4\Desktop\GitLab_Performance\apache-jmeter-5.6.3\bin"; ./jmeter.bat -n -t "C:\GitLab-Runner\builds\CIS_Performance_Part1.jmx" -l results.jtl -e -o report'
+  artifacts:
+    paths:
+      - results.jtl
+      - report/
+    expire_in: 1 day
+
+
