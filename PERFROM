@@ -342,4 +342,14 @@ script:
 
 
 
+- pwsh -Command "`$ts = Get-Date -Format yyyyMMdd_HHmmss; `$reportDir = `"$env:CI_PROJECT_DIR/report_`$ts`"; cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -f -t `"$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx`" -l `"$env:CI_PROJECT_DIR/results.jtl`" -e -o `$reportDir"
+
+
+
+artifacts:
+  paths:
+    - results.jtl
+    - report_*
+  expire_in: 1 day
+
 
