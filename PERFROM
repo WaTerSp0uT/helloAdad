@@ -343,6 +343,7 @@ script:
 
 
 - pwsh -Command "`$ts = Get-Date -Format yyyyMMdd_HHmmss; `$reportDir = `"$env:CI_PROJECT_DIR/report_`$ts`"; cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -f -t `"$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx`" -l `"$env:CI_PROJECT_DIR/results.jtl`" -e -o `$reportDir"
+- pwsh -Command "$ts = Get-Date -Format yyyyMMdd_HHmmss; $reportDir = 'report_' + $ts; cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -f -R192.168.1.101,192.168.1.102 -t '$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx' -l results.jtl -e -o $reportDir"
 
 
 
@@ -353,3 +354,23 @@ artifacts:
   expire_in: 1 day
 
 
+pwsh -Command "Remove-Item -Recurse -Force $env:CI_PROJECT_DIR\report -ErrorAction SilentlyContinue; cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -f -R192.168.1.101,192.168.1.102 -t '$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx' -l $env:CI_PROJECT_DIR/results.jtl -e -o $env:CI_PROJECT_DIR/report"
+
+
+
+
+stages:
+  - performance_test
+
+performance_test_job:
+  stage: performance_test
+  script:
+    - echo "🧹 Cleaning previous report folder..."
+    - pwsh -Command "Remove-Item -Recurse -Force $env:CI_PROJECT_DIR\report -ErrorAction SilentlyContinue"
+    - echo "🚀 Running JMeter test..."
+    - pwsh -Command "cd 'C:\jmeter\apache-jmeter-5.6.3\bin'; ./jmeter.bat -n -f -R192.168.1.101,192.168.1.102 -t '$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx' -l $env:CI_PROJECT_DIR/results.jtl -e -o $env:CI_PROJECT_DIR/report"
+  artifacts:
+    paths:
+      - results.jtl
+      - report/
+    expire_in: 1 day
