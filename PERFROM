@@ -391,6 +391,12 @@ Tested successful execution from GitLab with distributed load setup.
 Ensured proper JMeter behavior when triggered remotely via shell command.
 
 
+✅ Finalized the JMeter Performance Testing Document – ready for review.
+🔧 Completed the GitLab CI/CD setup for distributed JMeter execution; successfully demoed the integration.
+🎯 Prepared and presented a demo for Pari.
+🔍 Upcoming focus: investigating performance testing approach for SSO (Single Sign-On) applications.
+
+
 
 
 
