@@ -1,0 +1,111 @@
+## Distributed Performance Test Setup via GitLab CI/CD and JMeter
+
+### Objective
+
+Establish and document a robust CI/CD pipeline to execute distributed JMeter performance tests via GitLab on a master-slave virtual machine (VM) architecture.
+
+---
+
+### 1. **Environment Overview**
+
+* **Master VM**: Executes the test trigger.
+* **Slave VMs**: Receive and run the distributed test load.
+* **GitLab CI/CD**: Orchestrates test execution.
+* **GitLab Runner**: Installed and configured on Master VM.
+* **JMeter Version**: Apache JMeter 5.6.3
+* **Windows Shell**: PowerShell (pwsh)
+
+---
+
+### 2. **Pre-requisites**
+
+* Admin access to VMs (or assistance from admin for setup).
+* GitLab project with CI/CD enabled.
+* Configured GitLab Runner on Master VM.
+* Apache JMeter installed on Master and all Slave VMs.
+* Slaves listed in JMeter master machine's `jmeter.properties` under `remote_hosts`.
+
+---
+
+### 3. **GitLab Runner Setup**
+
+* Installed `gitlab-runner.exe` on Master VM under `C:\GitLab-Runner`.
+* Registered runner with project via command:
+
+  ```bash
+  gitlab-runner.exe register
+  ```
+* Used the shell executor with `pwsh` (PowerShell Core) as the shell.
+* Ensured `config.toml` has the correct working directory and shell path.
+
+---
+
+### 4. **Repository Structure**
+
+```
+/project-root
+│
+├── CIS_Performance_Part1.jmx       # JMeter test plan
+├── results.jtl                     # JMeter result log
+└── .gitlab-ci.yml                  # GitLab pipeline file
+```
+
+---
+
+### 5. **CI/CD YAML Configuration**
+
+```yaml
+stages:
+  - performance_test
+
+performance_test:
+  stage: performance_test
+  tags:
+    - jmeter-runner
+  script:
+    - echo "Starting JMeter distributed test..."
+    - pwsh -Command "
+        $ts = Get-Date -Format yyyyMMdd_HHmmss;
+        $reportDir = \"$env:CI_PROJECT_DIR/report_$ts\";
+        cd 'C:\\jmeter\\apache-jmeter-5.6.3\\bin';
+        ./jmeter.bat -n -f -R192.168.1.101,192.168.1.102 \
+        -t \"$env:CI_PROJECT_DIR/CIS_Performance_Part1.jmx\" \
+        -l \"$env:CI_PROJECT_DIR/results.jtl\" \
+        -e -o $reportDir"
+  artifacts:
+    paths:
+      - results.jtl
+      - report_*
+    expire_in: 1 day
+```
+
+---
+
+### 6. **Execution Flow**
+
+1. Developer pushes JMX file and pipeline config to GitLab.
+2. GitLab CI triggers the configured pipeline.
+3. GitLab Runner on the Master VM picks up the job.
+4. JMeter master triggers the distributed run to the listed slave IPs.
+5. Test results (`results.jtl`) and report folder are generated.
+6. GitLab captures and stores them as job artifacts.
+
+---
+
+### 7. **Verification & Output**
+
+* Check GitLab pipeline logs for successful run.
+* Download `results.jtl` and HTML `report_*/` for detailed analysis.
+* Verify execution from `jmeter-server.log` on each slave VM if needed.
+
+---
+
+### 8. **Future Enhancements**
+
+* Add scheduled pipeline trigger for periodic testing.
+* Integrate with monitoring dashboards.
+* Upload results to centralized test reporting tool (e.g., Allure).
+
+---
+
+This setup ensures scalable, repeatable, and automated performance testing using GitLab and JMeter across distributed infrastructure.
