@@ -109,3 +109,81 @@ performance_test:
 ---
 
 This setup ensures scalable, repeatable, and automated performance testing using GitLab and JMeter across distributed infrastructure.
+
+
+
+
+
+## 8.0 Analyze
+
+This section covers how to interpret performance test results after execution and make informed decisions based on the data collected. It marks the conclusion of the performance testing lifecycle and guides how to derive actionable insights from test data.
+
+### 8.1 Validate Results
+
+* Ensure that no functional errors occurred during the test using assertions.
+* Check HTTP response codes (e.g., 200 OK, 302 Redirect, 4xx/5xx errors).
+* Verify that key workflows (e.g., login, transaction submissions) completed successfully.
+
+### 8.2 Review Test Metrics
+
+Focus on critical Key Performance Indicators (KPIs):
+
+| Metric           | Description                                                     |
+| ---------------- | --------------------------------------------------------------- |
+| Response Time    | Time taken to process a request. Monitor for spikes or delays.  |
+| Throughput       | Requests processed per second — indicates system capacity.      |
+| Error Rate       | Percentage of failed requests — ideally should be near 0%.      |
+| Latency          | Time before a response starts — helps detect early bottlenecks. |
+| Concurrent Users | Correlate system behavior with active user load.                |
+
+### 8.3 Use Listener Reports
+
+* **Aggregate Report**: Summarized view of samples (avg, min, max, error %, etc.)
+* **Summary Report**: Tabular form of the same with additional metrics.
+* **Graph Results / Response Time Graphs**: Visualize spikes, trends, and anomalies.
+* **Transactions per Second**: Monitor throughput and system consistency.
+* **Active Threads Over Time**: Understand how user load ramps up and down.
+
+### 8.4 Analyze Bottlenecks
+
+Identify and isolate causes for slow or failed performance:
+
+* URLs with high response times.
+* Delays in database operations or long SQL queries.
+* Authentication/authorization slowdowns.
+* Issues caused by large payloads or file transfers.
+* Static resources (images, JS, CSS) with high load times.
+
+### 8.5 Generate HTML Report
+
+After execution, generate a comprehensive report for offline review:
+
+```bash
+jmeter -g results.jtl -o /path/to/output-folder
+```
+
+The generated HTML report includes:
+
+* Response time percentiles (e.g., 90th, 95th)
+* Request and error distribution graphs
+* Requests per second
+* Latency vs throughput
+* Time vs active users
+
+### 8.6 Store and Share Results
+
+* Use GitLab artifacts to store `results.jtl` and `report/` directory.
+* Set retention policies for how long these artifacts should remain accessible.
+* Archive past reports for trend analysis.
+
+### 8.7 Continuous Improvement
+
+* Use findings to recommend performance optimizations.
+* Identify scalability issues before production.
+* Iterate on test cases to reflect real-world load and data patterns.
+
+---
+
+**Key Takeaway:**
+The "Analyze" phase bridges testing and action — helping teams detect weaknesses, validate performance objectives, and plan further enhancements with confidence.
+
