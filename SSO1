@@ -1,0 +1,56 @@
+You’re running into a very common issue when using JMeter’s HTTP(S) Test Script Recorder with applications that use SSO (Single Sign-On).
+Let me break down exactly why this happens and how to fix it.
+✔️ Why it works without JMeter — but fails with JMeter recorder
+When JMeter launches its Proxy Recorder, it uses a self-signed certificate to intercept HTTPS traffic.
+Modern SSO systems (Okta, Azure AD, Ping SSO, etc.) block authentication as soon as they detect an untrusted MITM proxy.
+In your screenshot, Firefox is saying:
+“Warning: Potential Security Risk Ahead — certificate issue.”
+This means:
+1️⃣ Your browser does not trust the JMeter proxy certificate.
+JMeter is effectively acting like a “man-in-the-middle” to record requests. Without trusting its certificate, Firefox blocks the HTTPS traffic—including SSO.
+2️⃣ SSO authentication will always fail if the certificate is not trusted.
+Because SSO relies heavily on strict HTTPS validation, it refuses to authenticate.
+That’s why it doesn’t prompt for username/password normally,
+but does during JMeter recording → because the certificate is rejected.
+✔️ The Fix — Install the JMeter Root CA certificate into browser
+You must install JMeter's certificate into your browser’s trusted store.
+Steps:
+🔧 Step 1: Start JMeter Recorder
+Go to Tools → Recorder (or HTTP(S) Test Script Recorder)
+Click Start
+JMeter will generate a certificate here:
+<JMETER_HOME>/bin/ApacheJMeterTemporaryRootCA.crt
+🔧 Step 2: Install Certificate in Firefox
+Open Firefox
+Go to
+Settings → Privacy & Security → Certificates → View Certificates
+Go to Authorities
+Click Import
+Select:
+ApacheJMeterTemporaryRootCA.crt
+Check:
+✔️ Trust this CA to identify websites
+🔧 Step 3: Restart the browser and retry JMeter recording
+Now Firefox will trust the JMeter proxy and SSO should work like normal.
+✔️ Additional Important Notes for SSO Recording
+1️⃣ Use Firefox — not Chrome
+Chrome blocks local proxy certificates aggressively due to security policies.
+Firefox is the browser recommended for JMeter proxy recording.
+2️⃣ Some SSO Systems Still Can’t Be Recorded Directly
+Depending on SSO technology, some flows cannot be captured via proxy:
+SSO Type	Proxy Recording Works?
+Form-based login	✔️ Yes
+SAML Redirect login	❌ Often No
+OAuth / OpenID Login	❌ Usually No
+Azure AD / Okta	❌ Typically blocked
+If your SSO uses strict security policies, you may need a different approach (I can help you choose):
+Options:
+✔️ Option A — Bypass SSO using a direct API token from backend
+✔️ Option B — Ask dev team for a test login endpoint
+✔️ Option C — Use recording after SSO session is established
+(log in first normally → then start recorder → do post-login actions)
+Let me know and I can guide you on the best technique for your application.
+✔️ Your Next Step
+Try installing the JMeter proxy certificate.
+If after fixing the certificate you still cannot record SSO flow, we will need to use a different strategy.
+If you want, upload your JMeter Test Plan or share your SSO type and I can guide you step-by-step.
