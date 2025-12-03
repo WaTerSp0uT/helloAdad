@@ -50,6 +50,90 @@ Options:
 ✔️ Option C — Use recording after SSO session is established
 (log in first normally → then start recorder → do post-login actions)
 Let me know and I can guide you on the best technique for your application.
+
+
+
+========================================================
+
+
+Below are the three safe and reliable strategies used in real performance-testing environments when SSO blocks JMeter recording.
+I’ll explain each one clearly so you can choose the best approach for your application.
+✅ 1. Record Everything After Logging In (Recommended for Most SSO Apps)
+✔️ How it works
+Open browser without JMeter proxy
+Log in using SSO normally
+Once you are in the application (already authenticated),
+start the JMeter proxy recorder
+Perform only the post-login actions (navigation, form actions, API calls)
+✔️ Why it works
+SSO authentication uses:
+temporary tokens
+redirects
+strict certificate validation
+Once authenticated:
+JMeter can record application API calls (not SSO redirects)
+You avoid the entire SSO flow
+✔️ When to use
+✔️ Most corporate SSO apps
+✔️ Azure AD / OKTA / PingFederate
+✔️ Systems where login is not part of performance test scope
+✅ 2. Ask DevOps / Backend Team for a "Bypass Login" API Token (Best for Large Organizations)
+✔️ How it works
+Many SSO-protected apps still have:
+a backend login API
+or a token-generation endpoint
+You request the backend team for:
+→ A static test token or test user with API login access
+Then in JMeter:
+You skip browser login completely
+Use HTTP Request to authenticate using:
+token
+session cookie
+or JWT
+✔️ Why it works
+SSO is for browser login.
+Performance testing does not need to authenticate using the UI.
+✔️ Typical examples
+✔️ Get a JWT token by sending username/password to /auth/login
+✔️ Get access token using OAuth client credentials
+✔️ Use special header like x-api-key: <token>
+If your app supports this, it is the cleanest and most stable solution.
+✅ 3. Use a Pre-Recorded Token or Cookie in JMeter (Advanced but Reliable)
+✔️ How it works
+Log in to the application manually
+Copy the session cookie (e.g., JSESSIONID, AUTH_TOKEN, SSO_TOKEN)
+Inject this cookie into JMeter using HTTP Cookie Manager
+Directly start hitting application API endpoints
+✔️ Why this works
+SSO provides session cookies that JMeter can reuse.
+✔️ Caveat
+Many SSO tokens expire every:
+30 minutes
+1 hour
+24 hours
+So this solution is good for short test sessions.
+❌ What NOT to do
+These will not work reliably with SSO:
+✗ Trying to record the SSO login screen
+✗ Capturing redirects from Azure/OKTA (blocked by certificate rules)
+✗ Running corporate SSO through JMeter proxy
+SSO security is specifically designed to block MITM proxies, including JMeter.
+⭐ Recommended Strategy for Your Case (Based on the Screenshot You Shared)
+Since your browser shows a certificate warning, your application probably uses:
+🔒 STRICT SSO + HTTPS validation
+🔒 TLS pinning
+🔒 SAML / OAuth redirects
+In 90% of such cases, the best approach is:
+👉 Use Strategy #1: Log in normally → then start JMeter recording after login
+This avoids SSO entirely and lets you record only functional parts of your application.
+If your test plan requires login load testing, then:
+👉 Use Strategy #2: Request a backend login API or pre-issued tokens
+This is what professional performance testers do.
+📌 If you want, tell me:
+✔ What SSO your application uses (Azure AD, OKTA, custom SAML, etc.)
+✔ Whether you need to load test login itself or just after-login features
+✔ Whether backend APIs exist
+…and I’ll give you the exact method you should use.
 ✔️ Your Next Step
 Try installing the JMeter proxy certificate.
 If after fixing the certificate you still cannot record SSO flow, we will need to use a different strategy.
