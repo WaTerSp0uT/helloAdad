@@ -1,0 +1,116 @@
+1. Overview
+Our application uses Access Manager for Web (AMFW) for authentication.
+AMFW enforces strict security checks and prevents proxy-based recording of login flows. As a result, JMeter cannot directly record or replay the login sequence.
+This SOP outlines two options:
+2. Before You Begin — Confirm Whether SSO Can Be Disabled
+🔹 Option A — Preferred (If Allowed): Request SSO Bypass for Testing
+If possible, coordinate with the application team / DevOps team to:
+Temporarily disable AMFW authentication for the test environment,
+OR provide a direct non-SSO login endpoint,
+OR enable a test-only authentication bypass,
+OR allow the use of static session tokens for test users.
+This is the cleanest approach because:
+✔ The login flow becomes recordable
+✔ Tokens do not need manual refresh
+✔ Authentication can be load-tested independently
+✔ Simplifies scripting and correlation significantly
+If the development team can implement an SSO bypass, use that method instead of this document.
+3. If SSO Cannot Be Disabled — Use This Procedure
+If the AMFW login cannot be bypassed (most common scenario), follow the steps below.
+This approach avoids interacting with AMFW entirely by using manual cookie extraction and post-login-only recording.
+4. Step-by-Step Process
+STEP 1 — Manually Log In (JMeter Proxy OFF)
+Ensure the JMeter Recorder (proxy) is not running.
+Open your browser normally.
+Navigate to the application.
+Authenticate using Access Manager for Web.
+Stop when you reach the main authenticated landing page.
+Your browser now holds valid AMFW session cookies.
+STEP 2 — Capture the Access Manager Session Cookies
+Press F12 to open DevTools
+Go to Application → Cookies (Chrome) or Storage → Cookies (Firefox)
+Select the authenticated domain
+Identify cookies created after login, such as:
+iPlanetDirectoryPro
+AMSESSIONID
+AMAuthCookie
+JSESSIONID (app-side session)
+Any custom session tokens specific to our app
+If unsure, copy all cookies for the domain.
+STEP 3 — Insert Cookies into JMeter
+Thread Group → Add → Config Element → HTTP Cookie Manager
+Add each cookie with:
+Name
+Value
+Domain (e.g., .fematdl.net)
+Path (/ for most cookies)
+Secure flag — must match the browser
+Set:
+❗ Disable
+Clear cookies each iteration
+(Otherwise, JMeter deletes the authenticated session)
+Example:
+Name	Value	Domain	Path
+iPlanetDirectoryPro	ABC123	.fematdl.net	/
+JSESSIONID	XYZ987	app.fematdl.net	/
+STEP 4 — Record or Create Only Post-Login Requests
+Do not attempt to record:
+Access Manager login pages
+AMFW redirects
+Authentication handlers
+SAML-like token exchanges
+These will fail and are not required for our tests.
+Record or build only post-login functionality, such as:
+Dashboard
+Navigation
+Form submissions
+API/Servlet interactions
+Search and retrieve operations
+These can be captured by:
+✔ JMeter Recorder (after login only)
+✔ Manual HTTP Request creation
+5. Session Expiration
+AMFW sessions have timeouts—idle or absolute.
+When expired:
+JMeter will redirect to login
+Cookies must be refreshed
+Repeat Steps 1–3
+Plan accordingly for long-running or high-user-count tests.
+6. Best Practices for Our AMFW Authentication Flow
+✔ Extract cookies immediately after login
+✔ Copy Secure/Domain/Path flags exactly
+✔ Always test with “Preserve Log” enabled in DevTools
+✔ Avoid recording or simulating AMFW login flows
+✔ Use correlation for dynamic POST parameters (e.g., sessionId)
+✔ Maintain a pool of test users if possible
+7. Summary
+If the development team can disable or bypass Access Manager authentication:
+➡️ Use the bypass—it is the preferred and simplest method.
+If AMFW cannot be bypassed:
+➡️ Follow this SOP:
+Manual login
+Extract cookies
+Insert cookies into JMeter
+Record only post-login requests
+This approach is stable, secure, and aligned with how our authentication mechanism works.
+👉 Want me to format this as:
+Markdown for Confluence?
+PDF-style?
+A 1-page cheat sheet for the team?
+With diagrams / flowcharts added?
+Just tell me the format you'd prefer!
+
+
+
+
+
+Identified a reliable method to bypass the AMFW SSO login manually using authenticated session cookies.
+Updated our internal documentation to include the full procedure for:
+Manual login
+Cookie extraction
+Cookie injection in JMeter
+Recording post-login actions
+Successfully validated that this process works consistently across sessions.
+✔ In Progress
+Investigating whether we can automate the session renewal process, since the current session ID expires every 10 minutes.
+
