@@ -3,3 +3,12 @@ curl -H "Content-Type: application/json" \
      -X POST \
      --data @target/cucumber.json \
      "https://xray.cloud.getxray.app/api/v2/import/execution/cucumber?testExecKey=YOUR_TEST_EXEC_KEY"
+
+
+
+
+Re-executed the full regression test suite for the CIS application to ensure stability and that all previously automated test cases are running as expected.
+Reviewed and validated existing automated test cases, ensuring alignment with the latest application changes.
+Initiated development of the next five automated test cases as part of the ongoing test coverage expansion.
+Revisited and updated JIRA to ensure all relevant test cases are properly tagged with the automation label for better traceability and reporting.
+Continued hands-on work with the CIS application, focusing on maintaining test reliability and coverage.
