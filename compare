@@ -1,0 +1,262 @@
+<dependency>
+  <groupId>com.github.romankh3</groupId>
+  <artifactId>image-comparison</artifactId>
+  <version>4.4.0</version>
+</dependency>
+++++++++++++++
+  
+package utils;
+
+import org.openqa.selenium.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.*;
+
+public final class ScreenshotUtil {
+
+    private ScreenshotUtil(){}
+
+    public static byte[] captureBytes(WebDriver driver) {
+        return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+    }
+
+    public static BufferedImage captureImage(WebDriver driver) {
+        try {
+            byte[] bytes = captureBytes(driver);
+            return ImageIO.read(new ByteArrayInputStream(bytes));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to convert screenshot to BufferedImage", e);
+        }
+    }
+
+    public static void saveBytesToFile(byte[] bytes, Path outputPath) {
+        try {
+            Files.createDirectories(outputPath.getParent());
+            Files.write(outputPath, bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed saving screenshot: " + outputPath, e);
+        }
+    }
+
+    public static String safeName(String raw) {
+        if (raw == null || raw.isBlank()) return "screenshot";
+        return raw.replaceAll("[^a-zA-Z0-9._/-]+", "_");
+    }
+}
+
++++++++++++++++++++++++
+
+package utils;
+
+import com.github.romankh3.image.comparison.ImageComparison;
+import com.github.romankh3.image.comparison.ImageComparisonResult;
+import com.github.romankh3.image.comparison.model.ImageComparisonState;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.*;
+
+public class VisualComparisonUtil {
+
+    private VisualComparisonUtil() {}
+
+    /**
+     * Saves "actual" into target folder, compares to expected.
+     * On mismatch saves diff into target folder and throws AssertionError.
+     */
+    public static void compareAndFailOnMismatch(
+            BufferedImage expected,
+            BufferedImage actual,
+            Path actualOutputPath,
+            Path diffOutputPath,
+            int threshold
+    ) {
+        try {
+            Files.createDirectories(actualOutputPath.getParent());
+            ImageIO.write(actual, "PNG", actualOutputPath.toFile());
+
+            ImageComparison comparison = new ImageComparison(expected, actual);
+            comparison.setThreshold(threshold);
+
+            ImageComparisonResult result = comparison.compareImages();
+
+            if (result.getImageComparisonState() != ImageComparisonState.MATCH) {
+                Files.createDirectories(diffOutputPath.getParent());
+                ImageIO.write(result.getResultImage(), "PNG", diffOutputPath.toFile());
+
+                throw new AssertionError(
+                        "Visual mismatch!\nActual: " + actualOutputPath +
+                        "\nDiff: " + diffOutputPath
+                );
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Visual comparison failed", e);
+        }
+    }
+}
++++++++++++++++++++++++++++++++
+
+package stepDefinitions;
+
+import Factory.DriverFactory2;
+import io.cucumber.java.en.Then;
+import org.openqa.selenium.WebDriver;
+import utils.ScreenshotUtil;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class VisualBaselineSteps {
+
+    // base folder for expected/baselines (committed to git)
+    private static final String EXPECTED_ROOT = "src/test/resources/visual-baselines";
+
+    @Then("capture screenshot baseline with the name {string}")
+    public void captureScreenshotBaselineWithName(String relativeExpectedPath) {
+        WebDriver driver = DriverFactory2.getDriver();
+
+        // Capture and save expected baseline (permanent)
+        byte[] bytes = ScreenshotUtil.captureBytes(driver);
+        Path expectedPath = Paths.get(EXPECTED_ROOT, relativeExpectedPath);
+
+        ScreenshotUtil.saveBytesToFile(bytes, expectedPath);
+
+        // Optional: if you want visible console confirmation
+        System.out.println("Baseline saved: " + expectedPath);
+    }
+}
+++++++++++++++++++++++++++++++++++++++
+Then the page should match baseline "cis/expected/homepage.png"
+
+
+package stepDefinitions;
+
+import Factory.DriverFactory2;
+import io.cucumber.java.en.Then;
+import org.openqa.selenium.WebDriver;
+import utils.ScreenshotUtil;
+import utils.VisualComparisonUtil;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.nio.file.*;
+
+public class VisualCompareSteps {
+
+    private static final String EXPECTED_ROOT = "src/test/resources/visual-baselines";
+    private static final String ACTUAL_ROOT   = "target/visual-results/actual";
+    private static final String DIFF_ROOT     = "target/visual-results/diff";
+
+    @Then("the page should match baseline {string}")
+    public void thePageShouldMatchBaseline(String relativeExpectedPath) throws Exception {
+        WebDriver driver = DriverFactory2.getDriver();
+
+        Path expectedPath = Paths.get(EXPECTED_ROOT, relativeExpectedPath);
+        if (!Files.exists(expectedPath)) {
+            throw new AssertionError("Expected baseline not found: " + expectedPath);
+        }
+
+        BufferedImage expected = ImageIO.read(expectedPath.toFile());
+        BufferedImage actual = ScreenshotUtil.captureImage(driver);
+
+        // Save actual/diff only under target (run-only)
+        String fileName = Paths.get(relativeExpectedPath).getFileName().toString();
+        Path actualPath = Paths.get(ACTUAL_ROOT, relativeExpectedPath).getParent().resolve(fileName);
+        Path diffPath   = Paths.get(DIFF_ROOT, relativeExpectedPath).getParent().resolve(fileName.replace(".png", "_diff.png"));
+
+        int threshold = Integer.parseInt(System.getProperty("VISUAL_THRESHOLD", "5"));
+
+        VisualComparisonUtil.compareAndFailOnMismatch(expected, actual, actualPath, diffPath, threshold);
+    }
+}
+++++++++++++++++++
+
+  
+
+package Hooks;
+
+import Factory.DriverFactory2;
+import io.cucumber.java.*;
+import org.openqa.selenium.WebDriver;
+import utils.ScreenshotUtil;
+
+public class MyHooks {
+
+    private String screenshotMode; // "always" or "failed"
+
+    @Before
+    public void setup() {
+        // Ensure driver instance created for this thread
+        DriverFactory2.getDriver();
+
+        // Read screenshot mode from properties (default to "failed" if missing)
+        try {
+            String value = Library.getLibrary().getProperty("screenshotOnStep");
+            screenshotMode = (value == null || value.isBlank())
+                    ? "failed"
+                    : value.toLowerCase().trim();
+        } catch (Exception e) {
+            screenshotMode = "failed";
+            System.err.println("Could not read screenshotOnStep property. Defaulting to 'failed'. Reason: " + e.getMessage());
+        }
+    }
+
+    @AfterStep
+    public void afterEachStep(Scenario scenario) {
+        try {
+            if (shouldTakeStepScreenshot(scenario)) {
+                WebDriver driver = DriverFactory2.getDriver();
+                byte[] png = ScreenshotUtil.capturePngBytes(driver);
+                ScreenshotUtil.attachPng(scenario, png, scenario.getName());
+            }
+        } catch (Exception e) {
+            System.err.println("Error taking step screenshot: " + e.getMessage());
+        }
+    }
+
+    @After
+    public void endAssertionsAndCleanup(Scenario scenario) {
+        try {
+            // Optional: if you want a final screenshot on failure regardless of step mode:
+            // (Helpful if failure happens before AfterStep triggers, or on hooks)
+            if (scenario.isFailed() && !"always".equals(screenshotMode)) {
+                try {
+                    WebDriver driver = DriverFactory2.getDriver();
+                    byte[] png = ScreenshotUtil.capturePngBytes(driver);
+                    ScreenshotUtil.attachPng(scenario, png, scenario.getName() + "_FINAL");
+                } catch (Exception e) {
+                    System.err.println("Final failure screenshot failed: " + e.getMessage());
+                }
+            }
+
+            // IMPORTANT: assertAll should run ALWAYS (not only when scenario failed)
+            SoftAssert.assertALL();
+
+        } catch (AssertionError ae) {
+            // Let Cucumber mark scenario failed
+            throw ae;
+        } catch (Exception e) {
+            System.err.println("Error during assertions: " + e.getMessage());
+        } finally {
+            // Ensures driver is closed even if assertion fails
+            DriverFactory2.closeDriver();
+        }
+    }
+
+    private boolean shouldTakeStepScreenshot(Scenario scenario) {
+        if ("always".equals(screenshotMode)) return true;
+        if ("failed".equals(screenshotMode)) return scenario.isFailed();
+        // Unknown value: behave safely (avoid noise)
+        return scenario.isFailed();
+    }
+}
+
+
++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++
+  
+
+  
