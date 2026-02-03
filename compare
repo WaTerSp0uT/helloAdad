@@ -256,6 +256,20 @@ public class MyHooks {
 
 
 +++++++++++++++++++++++++++
+import org.openqa.selenium.Dimension;
+driver.manage().window().setSize(new Dimension(1920, 1080));
+
+Headless mode
+edgeOptions.addArguments("--window-size=1920,1080");
+
+OPTIONAL but highly recommended (Chrome / Edge)
+If you use Chromium browsers (Edge/Chrome), add scale factor = 1:
+edgeOptions.addArguments("--force-device-scale-factor=1");
+Why?
+Prevents DPI scaling differences on Windows / CI
+Very important for pixel comparison
+Firefox does NOT need this.
+
 ++++++++++++++++++++++++++++
   Visual Screenshot Comparison – How to Use
 This framework supports visual validation by comparing screenshots against a previously captured expected (baseline) image.
