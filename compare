@@ -257,6 +257,47 @@ public class MyHooks {
 
 +++++++++++++++++++++++++++
 ++++++++++++++++++++++++++++
-  
+  Visual Screenshot Comparison – How to Use
+This framework supports visual validation by comparing screenshots against a previously captured expected (baseline) image.
+The goal is to:
+Capture an expected screenshot once
+Reuse it in future runs to validate the UI visually
+Store actual screenshots only during the test run (not permanently)
 
+1️⃣ Capturing an Expected (Baseline) Screenshot (One-Time)
+Use this step only once when you want to create the expected image.
+Feature file example:
+Then capture screenshot baseline with the name "cis/expected/homepage.png"
+What this does:
+Takes a screenshot at that point in the test
+Saves it to:
+src/test/resources/visual-baselines/cis/expected/homepage.png
+This file becomes the expected reference for future comparisons
+✅ After running this once, commit the image to Git
+❗ You may remove this step from the feature later if you don’t need it anymore
+
+2️⃣ Validating the Page Against the Expected Screenshot
+Use this step during normal test runs to compare the current UI with the saved baseline.
+Feature file example:
+Then the page should match baseline "cis/expected/homepage.png"
+
+What this does:
+Captures an actual screenshot during the test run
+Compares it with the expected image
+If they match → test continues normally
+If they do NOT match:
+Saves:
+target/visual-results/actual/homepage.png
+target/visual-results/diff/homepage_diff.png
+Fails the test with a clear error message
+📌 Actual screenshots are not reused and are cleaned on the next run.
+
+3️⃣ When Should I Use Visual Comparison?
+Recommended use cases:
+Important pages (Home, Dashboard, Summary screens)
+Layout-sensitive UIs
+Regression checks after UI changes
+Not recommended for:
+Highly dynamic pages (timestamps, live data)
+Pages with frequently changing content unless stabilized
   
