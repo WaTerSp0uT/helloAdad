@@ -1,0 +1,5 @@
+@Given("I navigate to {string} on {string}")
+public void iNavigateToOnTargetMachine(String url, String targetMachine) {
+    Library.getLibrary().setProperty("targetMachine", targetMachine);
+    Library.getLibrary().navigateTo(url);
+}
