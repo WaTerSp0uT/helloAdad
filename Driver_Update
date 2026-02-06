@@ -3,3 +3,9 @@ public void iNavigateToOnTargetMachine(String url, String targetMachine) {
     Library.getLibrary().setProperty("targetMachine", targetMachine);
     Library.getLibrary().navigateTo(url);
 }
+
+
+// Allows overriding a property at runtime
+public void setProperty(String key, String value) {
+    properties.setProperty(key, value);
+}
