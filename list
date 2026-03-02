@@ -65,3 +65,10 @@ From what I understand, this does not appear to be a JMeter issue but rather a c
 I just wanted to bring this to your attention so that it can be taken into consideration before we finalize how we proceed with JMeter. Could you please confirm if using JMeter in the TDL environment would be acceptable from a cybersecurity perspective?
 Thanks,
 [Your Name]
+
+
+
+Started creating Selenium documentation outlining how to use and execute our automation framework.
+Updated CIS test cases to improve coverage and stability.
+Continued working on updating the CIS pipeline job configuration.
+Conducted planning session with Yulia on proposed framework enhancements and improvements.
