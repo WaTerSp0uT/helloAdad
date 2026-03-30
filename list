@@ -72,3 +72,23 @@ Started creating Selenium documentation outlining how to use and execute our aut
 Updated CIS test cases to improve coverage and stability.
 Continued working on updating the CIS pipeline job configuration.
 Conducted planning session with Yulia on proposed framework enhancements and improvements.
+
+
+
+Selenium Project Setup Tutorial – GitLab Pull & Test Execution
+
+Hi Team,
+I’ve created a short tutorial video demonstrating how to pull our Selenium project from GitLab and run a simple test locally.
+Please review the video and follow the steps to set up the project on your machine.
+Before starting, make sure your Git authentication is configured. You can follow the instructions in the links below:
+[Git Authentication Guide – Link 1]
+[Git Authentication Guide – Link 2]
+Once the authentication is set up, you can proceed with the steps shown in the video.
+Tutorial Video:
+[Insert Video Link]
+If you have any questions or run into any issues during the setup, feel free to reach out to me and I’ll be happy to help.
+Thank you.
+
+
+
+
