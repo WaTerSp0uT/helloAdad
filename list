@@ -100,3 +100,27 @@ I created a tutorial video demonstrating how to clone our Selenium framework fro
 I shared the video with the team and included Git authentication setup instructions.
 This should help the team get familiar with the framework and start practicing with it.
 
+
+
+
+
+
+
+Subject
+
+Hi Team,
+A new KT video has been recorded demonstrating how to contribute code using our Git branching workflow.
+
+In this video, we walk through the full process:
+
+creating a feature branch from the main branch
+making a small code change
+committing and pushing the branch
+creating a merge request
+assigning reviewers for approval
+Please take a few minutes to watch the video and try the process on your own. This will help ensure everyone is comfortable with the workflow when contributing changes.
+If you have any questions or need assistance, feel free to reach out and we’ll be happy to help.
+
+Thanks.
+
+
