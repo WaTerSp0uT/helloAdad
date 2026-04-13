@@ -1,0 +1,225 @@
+<dependency>
+    <groupId>com.oracle.database.jdbc</groupId>
+    <artifactId>ojdbc11</artifactId>
+    <version>23.3.0.23.09</version>
+</dependency>
+
+
+db.url=jdbc:mysql://localhost:3306/mydb
+db.username=testuser
+db.password=password
+db.driver=com.mysql.cj.jdbc.Driver
+
+DBConnectionManager.java
+
+++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++
+package utils.database;
+
+import utils.ConfigReader;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnectionManager {
+
+    private static Connection connection;
+
+    private static final String DB_URL = ConfigReader.getProperty("db.url");
+    private static final String DB_USERNAME = ConfigReader.getProperty("db.username");
+    private static final String DB_PASSWORD = ConfigReader.getProperty("db.password");
+    private static final String DB_DRIVER = ConfigReader.getProperty("db.driver");
+
+    private DBConnectionManager() {
+    }
+
+    public static Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                Class.forName(DB_DRIVER);
+                connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Database driver class not found: " + DB_DRIVER, e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to establish database connection", e);
+        }
+        return connection;
+    }
+
+    public static void closeConnection() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                connection = null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to close database connection", e);
+        }
+    }
+}
+
+
+++++++++++++++++++++
+
+QueryExecutor.java
+
+package utils.database;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class QueryExecutor {
+
+    private QueryExecutor() {
+    }
+
+    public static ResultSet executeQuery(String query) {
+        try {
+            Connection connection = DBConnectionManager.getConnection();
+            Statement statement = connection.createStatement();
+            return statement.executeQuery(query);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to execute query: " + query, e);
+        }
+    }
+
+    public static int executeUpdate(String query) {
+        try {
+            Connection connection = DBConnectionManager.getConnection();
+            Statement statement = connection.createStatement();
+            return statement.executeUpdate(query);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to execute update: " + query, e);
+        }
+    }
+}
+
++++++++++++++++++++++++++
++++++++++++++++++++++
+
+DBUtils.java
+
+package utils.database;
+
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
+
+public class DBUtils {
+
+    private DBUtils() {
+    }
+
+    public static String getSingleValue(String query, String columnName) {
+        ResultSet rs = null;
+        try {
+            rs = QueryExecutor.executeQuery(query);
+            if (rs.next()) {
+                return rs.getString(columnName);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch single value for query: " + query, e);
+        } finally {
+            closeResultSet(rs);
+        }
+    }
+
+    public static boolean recordExists(String query) {
+        ResultSet rs = null;
+        try {
+            rs = QueryExecutor.executeQuery(query);
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to check record existence for query: " + query, e);
+        } finally {
+            closeResultSet(rs);
+        }
+    }
+
+    public static List<Map<String, String>> getQueryResultAsList(String query) {
+        ResultSet rs = null;
+        List<Map<String, String>> resultList = new ArrayList<>();
+
+        try {
+            rs = QueryExecutor.executeQuery(query);
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            while (rs.next()) {
+                Map<String, String> rowMap = new LinkedHashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    rowMap.put(metaData.getColumnLabel(i), rs.getString(i));
+                }
+                resultList.add(rowMap);
+            }
+
+            return resultList;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch query results as list: " + query, e);
+        } finally {
+            closeResultSet(rs);
+        }
+    }
+
+    private static void closeResultSet(ResultSet rs) {
+        try {
+            if (rs != null) {
+                if (rs.getStatement() != null) {
+                    rs.getStatement().close();
+                }
+                rs.close();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to close ResultSet", e);
+        }
+    }
+}
+
+++++++++++++
+++++++++++++
+package hooks;
+
+import io.cucumber.java.After;
+import utils.database.DBConnectionManager;
+
+public class Hooks {
+
+    @After
+    public void tearDown() {
+        DBConnectionManager.closeConnection();
+    }
+}
+
+
+### Database Testing Support
+
+This framework includes built-in utilities for validating data directly from the database using **JDBC connectivity**. The database layer is designed to be **lightweight, reusable, and database-agnostic**, allowing automated tests to execute SQL queries and validate results as part of the test flow.
+
+The framework provides a small set of utility classes responsible for managing database interactions:
+
+* **DBConnectionManager** – Handles creation and management of database connections using configuration values defined in `config.properties`.
+* **QueryExecutor** – Executes SQL queries and updates against the database.
+* **DBUtils** – Provides reusable helper methods to retrieve and validate database results in a test-friendly format.
+
+Database connection parameters such as URL, username, password, and driver are externalized in the `config.properties` file, allowing the framework to support different database systems (e.g., MySQL, Oracle, PostgreSQL, SQL Server) without modifying the core code.
+
+These utilities enable test scenarios to perform validations such as:
+
+* Verifying records created or updated by the application
+* Comparing UI or API results with database values
+* Executing SQL queries during test execution
+* Confirming data integrity after user actions
+
+This design keeps database logic centralized and reusable while keeping **Cucumber step definitions clean and focused on test behavior**.
+++++++++++++++++
+
+Git Knowledge Transfer: Shared a recorded knowledge transfer video with the team via email explaining how to use Git, including the branching strategy and how to contribute code to our automation framework following the defined branching workflow.
+Framework Enhancement: Extended the automation framework to support database validation capabilities using JDBC, enabling execution of SQL queries and verification of database data within automated tests.
+Mandatory Training: Completed three mandatory organizational training courses.
